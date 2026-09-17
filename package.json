@@ -1,6 +1,6 @@
 {
   "name": "react-zpgraph",
-  "version": "0.1.0",
+  "version": "0.3.0",
   "description": "React bindings for zpgraph — fast typed timeseries charts",
   "keywords": [
     "react",
@@ -50,7 +50,7 @@
   "peerDependencies": {
     "react": "^17.0.0 || ^18.0.0 || ^19.0.0",
     "react-dom": "^17.0.0 || ^18.0.0 || ^19.0.0",
-    "zpgraph": "^0.1.0"
+    "zpgraph": "^1.1.0"
   },
   "devDependencies": {
     "@testing-library/react": "^16.3.0",
@@ -65,7 +65,7 @@
     "typescript": "^7.0.2",
     "vite": "^8.3.0",
     "vitest": "^5.0.1",
-    "zpgraph": "file:../core"
+    "zpgraph": "^1.1.0"
   },
   "engines": {
     "node": ">=18"

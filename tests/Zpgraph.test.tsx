@@ -19,9 +19,20 @@ const state = vi.hoisted(() => ({
 
 vi.mock("zpgraph", () => {
   class MockZpgraph {
+    static Plotters = {
+      fillPlotter: vi.fn(),
+      errorPlotter: vi.fn(),
+      linePlotter: vi.fn(),
+    };
+    static Plugins: Record<string, unknown> = {};
     updateOptions = vi.fn();
     destroy = vi.fn();
     resize = vi.fn();
+    toPng = vi.fn(() => "");
+    toCsv = vi.fn(() => "");
+    resetZoom = vi.fn();
+    setAnnotations = vi.fn();
+    getOption = vi.fn();
     graphDiv = document.createElement("div");
 
     constructor(
@@ -93,7 +104,11 @@ describe("Zpgraph", () => {
   it("keeps the same instance across ref.getInstance()", () => {
     const ref = createRef<ZpgraphHandle>();
     const { rerender } = render(
-      <Zpgraph ref={ref} data={sampleData} options={{ tooltip: { show: "always" } }} />,
+      <Zpgraph
+        ref={ref}
+        data={sampleData}
+        options={{ tooltip: { show: "always" } }}
+      />,
     );
     const first = ref.current?.getInstance();
 
@@ -124,19 +139,36 @@ describe("Zpgraph", () => {
     expect(instance.resize).toHaveBeenCalled();
   });
 
-  it("sets data-theme on the wrapper when theme is dark", () => {
-    const { container } = render(
-      <Zpgraph data={sampleData} theme="dark" />,
+  it("merges extras plugins into ctor options", () => {
+    render(
+      <Zpgraph
+        data={sampleData}
+        zoomLimits={{ minSpanMs: 1000 }}
+        keyboard
+        locale="pt"
+      />,
     );
+    const plugins = state.lastOpts?.plugins as unknown[];
+    expect(Array.isArray(plugins)).toBe(true);
+    expect(plugins.length).toBeGreaterThanOrEqual(2);
+  });
+
+  it("exposes setBrushActive / clearMeasure on the handle", () => {
+    const ref = createRef<ZpgraphHandle>();
+    render(<Zpgraph ref={ref} data={sampleData} brushSelect measure />);
+    expect(() => ref.current?.setBrushActive(true)).not.toThrow();
+    expect(() => ref.current?.clearMeasure()).not.toThrow();
+  });
+
+  it("sets data-theme on the wrapper when theme is dark", () => {
+    const { container } = render(<Zpgraph data={sampleData} theme="dark" />);
     expect(container.firstElementChild?.getAttribute("data-theme")).toBe(
       "dark",
     );
   });
 
   it("merges dark theme preset into updateOptions when theme changes", () => {
-    const { rerender } = render(
-      <Zpgraph data={sampleData} theme="light" />,
-    );
+    const { rerender } = render(<Zpgraph data={sampleData} theme="light" />);
     const instance = state.lastInstance!;
     instance.updateOptions.mockClear();
 
@@ -154,10 +186,7 @@ describe("Zpgraph", () => {
 
   it("forwards classNames into options on mount", () => {
     render(
-      <Zpgraph
-        data={sampleData}
-        classNames={{ legend: "rounded-md p-3" }}
-      />,
+      <Zpgraph data={sampleData} classNames={{ legend: "rounded-md p-3" }} />,
     );
     expect(state.lastOpts).toEqual({
       classNames: { legend: "rounded-md p-3" },
@@ -172,9 +201,11 @@ describe("Zpgraph", () => {
       />,
     );
     expect(typeof state.lastOpts?.legendFormatter).toBe("function");
-    const fmt = state.lastOpts!.legendFormatter as (
-      data: { xHTML?: string; series: []; i: null },
-    ) => HTMLElement;
+    const fmt = state.lastOpts!.legendFormatter as (data: {
+      xHTML?: string;
+      series: [];
+      i: null;
+    }) => HTMLElement;
     let node!: HTMLElement;
     act(() => {
       node = fmt({ xHTML: "hi", series: [], i: null });
@@ -184,9 +215,7 @@ describe("Zpgraph", () => {
   });
 
   it("injects drawCallback when renderTitle is set", () => {
-    render(
-      <Zpgraph data={sampleData} renderTitle={<strong>Title</strong>} />,
-    );
+    render(<Zpgraph data={sampleData} renderTitle={<strong>Title</strong>} />);
     expect(typeof state.lastOpts?.drawCallback).toBe("function");
   });
 

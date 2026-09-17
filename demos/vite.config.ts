@@ -15,6 +15,10 @@ export default defineConfig({
         replacement: path.resolve(root, "../../core/src/index.ts"),
       },
       {
+        find: /^zpgraph\/extras\/(.+)$/,
+        replacement: path.resolve(root, "../../core/src/extras/$1.ts"),
+      },
+      {
         find: "react-zpgraph",
         replacement: path.resolve(root, "../src/index.ts"),
       },

@@ -15,7 +15,7 @@ npm install react-zpgraph zpgraph
 ## Demos
 
 Interactive gallery (basic, theme, `renderLegend`, two axes, range selector,
-imperative ref, classNames, live update):
+imperative ref, classNames, live update, toolbar, extras):
 
 ```bash
 npm run demo
@@ -79,6 +79,13 @@ export function Chart({ isDark }: { isDark: boolean }) {
 | `loading` / `toolbar` / `thresholds` / `chartAnnotations`         | Shortcuts merged into options.                                                                                         |
 | `onZoom` / `onPointClick`                                         | Typed wrappers around core callbacks.                                                                                  |
 | `renderTitle` / `renderXLabel` / `renderYLabel` / `renderY2Label` | `ReactNode` or `() => ReactNode`, portaled into chart label divs.                                                      |
+| `renderThresholdLabel` / `renderSpanBandLabel`                    | ReactNode for threshold / span-band chips (DOM).                                                                       |
+| `renderMeasureLabel`                                              | ReactNode for measure overlay.                                                                                         |
+| `zoomLimits` / `keyboard` / `measure` / `onMeasure`               | Core extras — plugins on first mount.                                                                                  |
+| `brushSelect` / `brushActive` / `onBrushSelect`                   | Brush tool; toggle with prop or `ref.setBrushActive`.                                                                  |
+| `urlSync`                                                         | URL `from`/`to` sync.                                                                                                  |
+| `locale`                                                          | `"pt"` \| `"en"` \| `"es"` \| custom `LocalePack`.                                                                     |
+| `spanBands` / `movingAverage` / `fillBetween`                     | X-status strips; overlay MA plotter; fill between two series.                                                          |
 
 ## React render props
 
@@ -174,6 +181,30 @@ ref.current?.destroy();               // usually unnecessary — unmount destroy
 ```
 
 Use the handle for zoom buttons, series toggles, or any API not expressed as props.
+`setBrushActive` / `clearMeasure` control extras when those props are enabled.
+
+## Extras props
+
+Plugin extras attach on **first mount** (same lifecycle as core `plugins`).
+Mutable bits (`locale`, `brushActive`, `spanBands`, callbacks, plotters) sync on
+rerender.
+
+```tsx
+<Zpgraph
+  data={data}
+  zoomLimits={{ minSpanMs: 3_600_000 }}
+  keyboard
+  locale="pt"
+  measure
+  onMeasure={(r) => console.log(r.deltaX, r.deltaY)}
+  brushSelect
+  brushActive={brushOn}
+  onBrushSelect={({ xRange }) => setRange(xRange)}
+  spanBands={[{ x0, x1, color: "rgba(0,143,251,0.6)", label: "Auto" }]}
+  movingAverage={{ period: 7 }}
+  fillBetween={{ seriesA: "Low", seriesB: "High" }}
+/>
+```
 
 ## Peer dependencies
 

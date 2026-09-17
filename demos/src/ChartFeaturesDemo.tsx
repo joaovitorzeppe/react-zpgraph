@@ -4,13 +4,13 @@ import { makeSeries } from "./data";
 
 const data = makeSeries({ points: 90, series: 1, seed: 3 });
 
-export const ApexFeaturesDemo = () => {
+export const ChartFeaturesDemo = () => {
   const ref = useRef<ZpgraphHandle>(null);
   const [loading, setLoading] = useState(false);
 
   return (
     <section className="panel">
-      <h2>Apex-inspired features</h2>
+      <h2>Chart features</h2>
       <p className="hint">
         Toolbar, thresholds, forecast, export via ref, loading overlay.
       </p>

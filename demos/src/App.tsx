@@ -7,7 +7,7 @@ import { RangeDemo } from "./RangeDemo";
 import { RefControlsDemo } from "./RefControlsDemo";
 import { ClassNamesDemo } from "./ClassNamesDemo";
 import { LiveDemo } from "./LiveDemo";
-import { ApexFeaturesDemo } from "./ApexFeaturesDemo";
+import { ChartFeaturesDemo } from "./ChartFeaturesDemo";
 
 const TABS = [
   { id: "basic", label: "Basic", view: BasicDemo },
@@ -18,7 +18,7 @@ const TABS = [
   { id: "ref", label: "Ref / zoom", view: RefControlsDemo },
   { id: "classNames", label: "classNames", view: ClassNamesDemo },
   { id: "live", label: "Live", view: LiveDemo },
-  { id: "apex", label: "Apex features", view: ApexFeaturesDemo },
+  { id: "features", label: "Features", view: ChartFeaturesDemo },
 ] as const;
 
 type TabId = (typeof TABS)[number]["id"];

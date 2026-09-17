@@ -11,10 +11,6 @@ export default defineConfig({
   resolve: {
     alias: [
       {
-        find: "zpgraph/style.css",
-        replacement: path.resolve(root, "../../core/src/style.css"),
-      },
-      {
         find: /^zpgraph$/,
         replacement: path.resolve(root, "../../core/src/index.ts"),
       },
@@ -29,7 +25,7 @@ export default defineConfig({
     open: true,
   },
   build: {
-    target: "es2022",
+    target: "es2023",
     outDir: "dist",
     emptyOutDir: true,
   },

@@ -32,7 +32,7 @@ export const ThemeDemo = () => {
           theme={theme}
           options={{
             labels: ["Date", "Temp", "Humidity"],
-            legend: "always",
+            tooltip: { show: "always" },
             title: "Themed chart",
             ylabel: "Reading",
             animatedZooms: true,

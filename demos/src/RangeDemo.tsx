@@ -13,7 +13,7 @@ export const RangeDemo = () => (
         theme="dark"
         options={{
           labels: ["Date", "Alpha", "Beta"],
-          legend: "always",
+          tooltip: { show: "always" },
           title: "With range selector",
           showRangeSelector: true,
           rangeSelectorHeight: 40,

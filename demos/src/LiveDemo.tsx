@@ -32,7 +32,7 @@ export const LiveDemo = () => {
           theme="dark"
           options={{
             labels: ["Date", "Signal"],
-            legend: "always",
+            tooltip: { show: "always" },
             title: "Streaming points",
             drawPoints: true,
             strokeWidth: 1.5,

@@ -15,7 +15,7 @@ export const TwoAxesDemo = () => (
         theme="dark"
         options={{
           labels: ["Date", "Temp", "Load", "Ambient"],
-          legend: "always",
+          tooltip: { show: "always" },
           title: "Mixed magnitudes",
           ylabel: "°C",
           y2label: "Load",

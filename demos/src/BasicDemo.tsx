@@ -15,7 +15,7 @@ export const BasicDemo = () => (
         theme="dark"
         options={{
           labels: ["Date", "Alpha", "Beta"],
-          legend: "always",
+          tooltip: { show: "always" },
           title: "Sample timeseries",
           ylabel: "Value",
           animatedZooms: true,

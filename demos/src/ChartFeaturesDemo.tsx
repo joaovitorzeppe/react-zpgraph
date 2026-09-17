@@ -49,7 +49,7 @@ export const ChartFeaturesDemo = () => {
           ]}
           options={{
             labels: ["Date", "Alpha"],
-            legend: "always",
+            tooltip: { show: "always" },
             animatedZooms: true,
             fillGraph: true,
             fillGradient: {

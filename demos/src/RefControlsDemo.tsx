@@ -62,7 +62,7 @@ export const RefControlsDemo = () => {
           theme="dark"
           options={{
             labels: ["Date", "Alpha", "Beta"],
-            legend: "always",
+            tooltip: { show: "always" },
             title: "Controlled chart",
             animatedZooms: true,
             colors: ["#f472b6", "#2dd4bf"],

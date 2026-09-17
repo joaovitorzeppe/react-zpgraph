@@ -31,7 +31,7 @@ export const RenderLegendDemo = () => (
         theme="dark"
         options={{
           labels: ["Date", "A", "B", "C"],
-          legend: "follow",
+          tooltip: { position: "follow" },
           title: " ",
           animatedZooms: true,
           colors: ["#a3e635", "#e879f9", "#22d3ee"],

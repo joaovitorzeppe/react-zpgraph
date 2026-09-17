@@ -93,7 +93,7 @@ describe("Zpgraph", () => {
   it("keeps the same instance across ref.getInstance()", () => {
     const ref = createRef<ZpgraphHandle>();
     const { rerender } = render(
-      <Zpgraph ref={ref} data={sampleData} options={{ legend: "always" }} />,
+      <Zpgraph ref={ref} data={sampleData} options={{ tooltip: { show: "always" } }} />,
     );
     const first = ref.current?.getInstance();
 
@@ -101,7 +101,7 @@ describe("Zpgraph", () => {
       <Zpgraph
         ref={ref}
         data={sampleData}
-        options={{ legend: "follow" }}
+        options={{ tooltip: { position: "follow" } }}
       />,
     );
 

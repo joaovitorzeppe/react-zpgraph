@@ -52,7 +52,7 @@ export function Chart({ isDark }: { isDark: boolean }) {
         theme={isDark ? "dark" : "light"}
         options={{
           labels: ["Date", "Alpha", "Beta"],
-          legend: "always",
+          tooltip: { show: "always" },
           animatedZooms: true,
         }}
         style={{ width: "100%", height: 320 }}
@@ -91,7 +91,7 @@ import { Zpgraph } from "react-zpgraph";
 
 <Zpgraph
   data={data}
-  options={{ labels: ["Date", "Alpha"], legend: "follow", title: " " }}
+  options={{ labels: ["Date", "Alpha"], tooltip: { position: "follow" }, title: " " }}
   renderLegend={(data) => (
     <div>
       <Typography.Text strong>{data.xHTML}</Typography.Text>
@@ -124,7 +124,7 @@ Notes:
 import { themes } from "react-zpgraph"; // re-export from zpgraph
 
 // Or pass theme prop — preferred for React apps:
-<Zpgraph data={data} theme="dark" options={{ legend: "always" }} />;
+<Zpgraph data={data} theme="dark" options={{ tooltip: { show: "always" } }} />;
 ```
 
 - **DOM** (legend, axis labels, annotations): CSS variables on `.zpgraph` (`--zp-legend-bg`, …). Activated by `data-theme="dark"` on the chart or an ancestor.

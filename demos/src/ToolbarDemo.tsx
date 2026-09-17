@@ -27,7 +27,14 @@ export const ToolbarDemo = () => {
 
   const iconsToolbar = useMemo<ToolbarOptions>(
     () => ({
-      tools: ["zoomin", "zoomout", "pan", "reset", "downloadPng", "downloadCsv"],
+      tools: [
+        "zoomin",
+        "zoomout",
+        "pan",
+        "reset",
+        "downloadPng",
+        "downloadCsv",
+      ],
       position: "top-right",
       labels: {
         zoomin: "Zoom in",
@@ -74,7 +81,7 @@ export const ToolbarDemo = () => {
             toolbar={iconsToolbar}
             options={{
               labels: ["Date", "Alpha"],
-              legend: "onmouseover",
+              tooltip: { show: "onmouseover" },
               animatedZooms: true,
               colors: ["#38bdf8"],
             }}
@@ -126,7 +133,7 @@ export const ToolbarDemo = () => {
             }
             options={{
               labels: ["Date", "Alpha"],
-              legend: "always",
+              tooltip: { show: "always", position: "top-left" },
               animatedZooms: true,
               colors: ["#fb7185"],
             }}

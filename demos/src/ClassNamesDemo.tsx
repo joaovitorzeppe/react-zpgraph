@@ -20,7 +20,7 @@ export const ClassNamesDemo = () => (
         }}
         options={{
           labels: ["Date", "Alpha", "Beta"],
-          legend: "always",
+          tooltip: { show: "always" },
           title: "Styled chrome",
           animatedZooms: true,
           colors: ["#fbbf24", "#c084fc"],

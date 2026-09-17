@@ -28,7 +28,6 @@ Opens Vite on port 5174. Source under [`demos/`](./demos).
 ```tsx
 import { useRef } from "react";
 import { Zpgraph, type ZpgraphHandle } from "react-zpgraph";
-import "zpgraph/style.css";
 
 const data = [
   [new Date("2024-01-01"), 10, 20],
@@ -204,14 +203,6 @@ rerender.
   movingAverage={{ period: 7 }}
   fillBetween={{ seriesA: "Low", seriesB: "High" }}
 />
-```
-
-## Peer dependencies
-
-```
-react ^17 || ^18 || ^19
-react-dom ^17 || ^18 || ^19
-zpgraph ^0.1.0
 ```
 
 ## License

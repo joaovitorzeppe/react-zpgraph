@@ -155,3 +155,73 @@ nav.tabs button.active {
 .classnames-demo .demo-axis {
   font-weight: 600;
 }
+
+/* Extras demo — labelStyle + render*Label */
+.extras-msg {
+  color: var(--muted);
+  font-size: 0.85rem;
+  align-self: center;
+}
+
+.extras-demo .extras-threshold-chip,
+.extras-demo .extras-react-threshold {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  background: rgba(56, 189, 248, 0.2);
+  border: 1px solid rgba(56, 189, 248, 0.45);
+  color: #e0f2fe;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.extras-react-threshold__dot {
+  width: 0.4rem;
+  height: 0.4rem;
+  border-radius: 50%;
+  background: #38bdf8;
+}
+
+.extras-demo .extras-chip,
+.extras-demo .extras-react-band {
+  display: inline-block;
+  padding: 0.12rem 0.55rem;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: #0f172a;
+}
+
+.extras-chip--off,
+.extras-react-band--off {
+  background: #fb7185;
+}
+
+.extras-chip--auto,
+.extras-react-band--auto {
+  background: #38bdf8;
+}
+
+.extras-chip--cont,
+.extras-react-band--cont {
+  background: #34d399;
+}
+
+.extras-demo .extras-measure,
+.extras-demo .extras-react-measure {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.35rem 0.65rem;
+  border-radius: 8px;
+  background: rgba(251, 191, 36, 0.15);
+  border: 1px solid rgba(251, 191, 36, 0.45);
+  color: #fde68a;
+  font-size: 0.8rem;
+  font-variant-numeric: tabular-nums;
+}

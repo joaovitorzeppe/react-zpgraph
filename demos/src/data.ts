@@ -2,6 +2,8 @@
 
 export const dayMs = 86_400_000;
 
+export const utcDay = (y: number, m: number, d: number) => Date.UTC(y, m, d);
+
 export const makeSeries = (opts?: {
   points?: number;
   series?: number;

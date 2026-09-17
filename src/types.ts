@@ -11,21 +11,19 @@ import type {
   ToolbarOptions,
   ZpgraphOptions,
 } from "zpgraph";
+import type { ExtrasProps } from "./extras-bridge";
 
 export type ZpgraphHandle = {
   getInstance: () => Zpgraph | null;
-  updateOptions: (
-    opts: Partial<ZpgraphOptions>,
-    blockRedraw?: boolean,
-  ) => void;
+  updateOptions: (opts: Partial<ZpgraphOptions>, blockRedraw?: boolean) => void;
   resize: () => void;
   destroy: () => void;
   toPng: (opts?: { scale?: number; background?: string }) => string;
   toCsv: (opts?: { includeHeader?: boolean }) => string;
   resetZoom: () => void;
-  setAnnotations: (
-    ann: Parameters<Zpgraph["setAnnotations"]>[0],
-  ) => void;
+  setAnnotations: (ann: Parameters<Zpgraph["setAnnotations"]>[0]) => void;
+  setBrushActive: (active: boolean) => void;
+  clearMeasure: () => void;
 };
 
 export type LabelRender = ReactNode | (() => ReactNode);
@@ -61,10 +59,28 @@ export type ZpgraphProps = {
   renderYLabel?: LabelRender;
   /** React content for the y2-axis label (`.zpgraph-y2label`). */
   renderY2Label?: LabelRender;
+  /** Override threshold label chips (DOM). */
+  renderThresholdLabel?: (
+    band: ThresholdBand,
+    index: number,
+  ) => ReactNode;
+  /** Override span-band label chips (DOM). */
+  renderSpanBandLabel?: (
+    band: import("zpgraph/extras/span-bands").SpanBand,
+    index: number,
+  ) => ReactNode;
+  /** Override measure Δ overlay (DOM). */
+  renderMeasureLabel?: (info: {
+    result: import("zpgraph/extras/measure").MeasureResult | null;
+    dx: string;
+    dy: string;
+  }) => ReactNode;
   onZoom?: (
     minDate: number,
     maxDate: number,
     yRanges: Array<[number, number] | null>,
   ) => void;
   onPointClick?: (event: MouseEvent, point: Point) => void;
-};
+} & ExtrasProps;
+
+export type { ExtrasProps, LocaleProp } from "./extras-bridge";

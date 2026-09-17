@@ -21,8 +21,19 @@ import type {
   ZpgraphOptions,
 } from "zpgraph";
 import type ZpgraphInstance from "zpgraph";
+import {
+  createExtrasController,
+  type ExtrasController,
+  type ExtrasProps,
+} from "./extras-bridge";
+import {
+  disposeDynamicLabelHosts,
+  paintDynamicLabels,
+  type DynamicLabelRenders,
+} from "./dynamic-labels";
 import { createReactHost, resolveNode, type ReactHost } from "./react-host";
 import type { LabelRender, ZpgraphHandle, ZpgraphProps } from "./types";
+import type { SpanBand } from "zpgraph/extras/span-bands";
 
 type RenderSlots = {
   renderLegend?: ZpgraphProps["renderLegend"];
@@ -55,6 +66,24 @@ const OVERLAY_SLOTS: Array<{
   { key: "renderToolbar", selector: ".zpgraph-toolbar" },
 ];
 
+const pickExtras = (props: ZpgraphProps): ExtrasProps => {
+  const out: ExtrasProps = {};
+  if (props.zoomLimits !== undefined) out.zoomLimits = props.zoomLimits;
+  if (props.keyboard !== undefined) out.keyboard = props.keyboard;
+  if (props.measure !== undefined) out.measure = props.measure;
+  if (props.onMeasure !== undefined) out.onMeasure = props.onMeasure;
+  if (props.brushSelect !== undefined) out.brushSelect = props.brushSelect;
+  if (props.brushActive !== undefined) out.brushActive = props.brushActive;
+  if (props.onBrushSelect !== undefined)
+    out.onBrushSelect = props.onBrushSelect;
+  if (props.urlSync !== undefined) out.urlSync = props.urlSync;
+  if (props.locale !== undefined) out.locale = props.locale;
+  if (props.spanBands !== undefined) out.spanBands = props.spanBands;
+  if (props.movingAverage !== undefined)
+    out.movingAverage = props.movingAverage;
+  if (props.fillBetween !== undefined) out.fillBetween = props.fillBetween;
+  return out;
+};
 const mergeShortcutOptions = (
   options: Partial<ZpgraphOptions> | undefined,
   shortcuts: {
@@ -97,10 +126,18 @@ const mergeOptions = (
   slots: RenderSlots,
   hosts: {
     legend?: ReactHost | undefined;
-    labels: Partial<
-      Record<(typeof LABEL_SLOTS)[number]["key"], ReactHost>
-    >;
+    labels: Partial<Record<(typeof LABEL_SLOTS)[number]["key"], ReactHost>>;
     overlays: Partial<Record<(typeof OVERLAY_SLOTS)[number]["key"], ReactHost>>;
+  },
+  dynamic?: {
+    renders: DynamicLabelRenders;
+    hosts: {
+      threshold: ReactHost[];
+      spanBand: ReactHost[];
+      measure: ReactHost | null;
+    };
+    thresholds?: ThresholdBand[] | undefined;
+    spanBands?: SpanBand[] | undefined;
   },
 ): Partial<ZpgraphOptions> | undefined => {
   const hasSlots =
@@ -111,8 +148,18 @@ const mergeOptions = (
     !!slots.renderY2Label ||
     !!slots.renderNoData ||
     !!slots.renderToolbar;
+  const hasDynamic =
+    !!dynamic?.renders.renderThresholdLabel ||
+    !!dynamic?.renders.renderSpanBandLabel ||
+    !!dynamic?.renders.renderMeasureLabel;
 
-  if (!theme && !classNames && options === undefined && !hasSlots) {
+  if (
+    !theme &&
+    !classNames &&
+    options === undefined &&
+    !hasSlots &&
+    !hasDynamic
+  ) {
     return undefined;
   }
 
@@ -132,7 +179,8 @@ const mergeOptions = (
 
   const needsPortal =
     LABEL_SLOTS.some(({ key }) => slots[key]) ||
-    OVERLAY_SLOTS.some(({ key }) => slots[key]);
+    OVERLAY_SLOTS.some(({ key }) => slots[key]) ||
+    hasDynamic;
 
   if (needsPortal) {
     const userDraw = options?.drawCallback;
@@ -172,6 +220,16 @@ const mergeOptions = (
         if (node !== undefined) host.render(node);
       }
 
+      if (dynamic && hasDynamic) {
+        paintDynamicLabels(
+          g.graphDiv,
+          dynamic.renders,
+          dynamic.hosts,
+          dynamic.thresholds,
+          dynamic.spanBands,
+        );
+      }
+
       userDraw?.(g, isInitial);
     };
   }
@@ -183,10 +241,11 @@ const mergeOptions = (
 /**
  * Thin React wrapper around zpgraph.
  * One ctor on mount; data/options/theme flow through updateOptions (no recreate).
+ * Extras plugins attach on first mount from props (see ExtrasProps).
  */
 export const Zpgraph = forwardRef<ZpgraphHandle, ZpgraphProps>(
-  function Zpgraph(
-    {
+  function Zpgraph(props, ref) {
+    const {
       data,
       options,
       theme,
@@ -206,14 +265,17 @@ export const Zpgraph = forwardRef<ZpgraphHandle, ZpgraphProps>(
       renderXLabel,
       renderYLabel,
       renderY2Label,
+      renderThresholdLabel,
+      renderSpanBandLabel,
+      renderMeasureLabel,
       onZoom,
       onPointClick,
-    },
-    ref,
-  ) {
+    } = props;
+
     const legendRender = renderLegend ?? renderTooltip;
     const containerRef = useRef<HTMLDivElement>(null);
     const instanceRef = useRef<ZpgraphCore | null>(null);
+    const extrasRef = useRef<ExtrasController | null>(null);
     const dataRef = useRef(data);
     const optionsRef = useRef(options);
     const themeRef = useRef(theme);
@@ -226,6 +288,9 @@ export const Zpgraph = forwardRef<ZpgraphHandle, ZpgraphProps>(
       onZoom,
       onPointClick,
     });
+    const extrasPropsRef = useRef(pickExtras(props));
+    extrasPropsRef.current = pickExtras(props);
+
     const renderLegendRef = useRef(legendRender);
     const renderTitleRef = useRef(renderTitle);
     const renderXLabelRef = useRef(renderXLabel);
@@ -233,6 +298,11 @@ export const Zpgraph = forwardRef<ZpgraphHandle, ZpgraphProps>(
     const renderY2LabelRef = useRef(renderY2Label);
     const renderNoDataRef = useRef(renderNoData);
     const renderToolbarRef = useRef(renderToolbar);
+    const dynamicRendersRef = useRef<DynamicLabelRenders>({
+      renderThresholdLabel,
+      renderSpanBandLabel,
+      renderMeasureLabel,
+    });
     const onReadyRef = useRef(onReady);
     onReadyRef.current = onReady;
 
@@ -243,6 +313,15 @@ export const Zpgraph = forwardRef<ZpgraphHandle, ZpgraphProps>(
     const overlayHostsRef = useRef<
       Partial<Record<(typeof OVERLAY_SLOTS)[number]["key"], ReactHost>>
     >({});
+    const dynamicHostsRef = useRef<{
+      threshold: ReactHost[];
+      spanBand: ReactHost[];
+      measure: ReactHost | null;
+    }>({
+      threshold: [],
+      spanBand: [],
+      measure: null,
+    });
 
     const currentSlots = (): RenderSlots => ({
       renderLegend: renderLegendRef.current,
@@ -253,6 +332,12 @@ export const Zpgraph = forwardRef<ZpgraphHandle, ZpgraphProps>(
       renderNoData: renderNoDataRef.current,
       renderToolbar: renderToolbarRef.current,
     });
+
+    const resolveSpanBands = (): SpanBand[] | undefined => {
+      const raw = extrasPropsRef.current.spanBands;
+      if (!raw) return undefined;
+      return Array.isArray(raw) ? raw : raw.bands;
+    };
 
     const buildOptions = (
       opts: Partial<ZpgraphOptions> | undefined,
@@ -269,6 +354,12 @@ export const Zpgraph = forwardRef<ZpgraphHandle, ZpgraphProps>(
         mergeShortcutOptions(opts, shortcutsRef.current),
         slots,
         hosts,
+        {
+          renders: dynamicRendersRef.current,
+          hosts: dynamicHostsRef.current,
+          thresholds: shortcutsRef.current.thresholds,
+          spanBands: resolveSpanBands(),
+        },
       );
     };
 
@@ -292,6 +383,12 @@ export const Zpgraph = forwardRef<ZpgraphHandle, ZpgraphProps>(
       setAnnotations: (ann) => {
         instanceRef.current?.setAnnotations(ann);
       },
+      setBrushActive: (active) => {
+        extrasRef.current?.setBrushActive(active);
+      },
+      clearMeasure: () => {
+        extrasRef.current?.clearMeasure();
+      },
     }));
 
     useLayoutEffect(() => {
@@ -302,12 +399,15 @@ export const Zpgraph = forwardRef<ZpgraphHandle, ZpgraphProps>(
         legendHostRef.current = createReactHost();
       }
 
-      const g = new ZpgraphCore(
-        el,
-        dataRef.current,
-        buildOptions(optionsRef.current, currentSlots()),
-      );
+      const extras = createExtrasController(extrasPropsRef.current);
+      extrasRef.current = extras;
+
+      const base = buildOptions(optionsRef.current, currentSlots());
+      const withExtras = extras.mergeIntoOptions(base);
+
+      const g = new ZpgraphCore(el, dataRef.current, withExtras);
       instanceRef.current = g;
+      extras.afterMount(g);
       onReadyRef.current?.(g);
 
       let ro: ResizeObserver | undefined;
@@ -320,6 +420,10 @@ export const Zpgraph = forwardRef<ZpgraphHandle, ZpgraphProps>(
 
       return () => {
         ro?.disconnect();
+        extras.destroy();
+        if (extrasRef.current === extras) {
+          extrasRef.current = null;
+        }
         g.destroy();
         if (instanceRef.current === g) {
           instanceRef.current = null;
@@ -334,6 +438,7 @@ export const Zpgraph = forwardRef<ZpgraphHandle, ZpgraphProps>(
           host?.dispose();
         }
         overlayHostsRef.current = {};
+        disposeDynamicLabelHosts(dynamicHostsRef.current);
       };
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
@@ -362,7 +467,12 @@ export const Zpgraph = forwardRef<ZpgraphHandle, ZpgraphProps>(
         renderYLabelRef.current !== renderYLabel ||
         renderY2LabelRef.current !== renderY2Label ||
         renderNoDataRef.current !== renderNoData ||
-        renderToolbarRef.current !== renderToolbar;
+        renderToolbarRef.current !== renderToolbar ||
+        dynamicRendersRef.current.renderThresholdLabel !==
+          renderThresholdLabel ||
+        dynamicRendersRef.current.renderSpanBandLabel !==
+          renderSpanBandLabel ||
+        dynamicRendersRef.current.renderMeasureLabel !== renderMeasureLabel;
 
       if (
         !themeChanged &&
@@ -371,6 +481,8 @@ export const Zpgraph = forwardRef<ZpgraphHandle, ZpgraphProps>(
         !shortcutsChanged &&
         !slotsChanged
       ) {
+        // Still sync extras (locale / brush / bands / callbacks).
+        extrasRef.current?.sync(extrasPropsRef.current, instanceRef.current);
         return;
       }
 
@@ -392,6 +504,11 @@ export const Zpgraph = forwardRef<ZpgraphHandle, ZpgraphProps>(
       renderY2LabelRef.current = renderY2Label;
       renderNoDataRef.current = renderNoData;
       renderToolbarRef.current = renderToolbar;
+      dynamicRendersRef.current = {
+        renderThresholdLabel,
+        renderSpanBandLabel,
+        renderMeasureLabel,
+      };
 
       if (legendRender && !legendHostRef.current) {
         legendHostRef.current = createReactHost();
@@ -401,6 +518,7 @@ export const Zpgraph = forwardRef<ZpgraphHandle, ZpgraphProps>(
       if (merged !== undefined) {
         instanceRef.current?.updateOptions(merged);
       }
+      extrasRef.current?.sync(extrasPropsRef.current, instanceRef.current);
     }, [
       theme,
       options,
@@ -416,8 +534,23 @@ export const Zpgraph = forwardRef<ZpgraphHandle, ZpgraphProps>(
       renderY2Label,
       renderNoData,
       renderToolbar,
+      renderThresholdLabel,
+      renderSpanBandLabel,
+      renderMeasureLabel,
       onZoom,
       onPointClick,
+      props.zoomLimits,
+      props.keyboard,
+      props.measure,
+      props.onMeasure,
+      props.brushSelect,
+      props.brushActive,
+      props.onBrushSelect,
+      props.urlSync,
+      props.locale,
+      props.spanBands,
+      props.movingAverage,
+      props.fillBetween,
     ]);
 
     return (

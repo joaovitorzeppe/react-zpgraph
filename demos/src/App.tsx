@@ -9,6 +9,7 @@ import { ClassNamesDemo } from "./ClassNamesDemo";
 import { LiveDemo } from "./LiveDemo";
 import { ChartFeaturesDemo } from "./ChartFeaturesDemo";
 import { ToolbarDemo } from "./ToolbarDemo";
+import { ExtrasDemo } from "./ExtrasDemo";
 
 const TABS = [
   { id: "basic", label: "Basic", view: BasicDemo },
@@ -21,6 +22,7 @@ const TABS = [
   { id: "live", label: "Live", view: LiveDemo },
   { id: "features", label: "Features", view: ChartFeaturesDemo },
   { id: "toolbar", label: "Toolbar", view: ToolbarDemo },
+  { id: "extras", label: "Extras", view: ExtrasDemo },
 ] as const;
 
 type TabId = (typeof TABS)[number]["id"];

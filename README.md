@@ -12,12 +12,6 @@ Works with **React 19** (primary), **React 18**, and **React 17**.
 npm install react-zpgraph zpgraph
 ```
 
-Styles live in the core package (not bundled here) — required for theme tokens:
-
-```ts
-import "zpgraph/style.css";
-```
-
 ## Demos
 
 Interactive gallery (basic, theme, `renderLegend`, two axes, range selector,
@@ -46,7 +40,10 @@ export function Chart({ isDark }: { isDark: boolean }) {
 
   return (
     <>
-      <button type="button" onClick={() => ref.current?.getInstance()?.resetZoom()}>
+      <button
+        type="button"
+        onClick={() => ref.current?.getInstance()?.resetZoom()}
+      >
         Reset zoom
       </button>
       <Zpgraph
@@ -67,21 +64,21 @@ export function Chart({ isDark }: { isDark: boolean }) {
 
 ## Props
 
-| Prop | Description |
-|------|-------------|
-| `data` | Chart series (`Data`). Changes call `updateOptions({ file })` — no destroy/recreate. |
-| `options` | `Partial<ZpgraphOptions>` (without `file`). Compared by reference. User keys win over theme presets. |
-| `theme` | `"light"` \| `"dark"`. Sets `data-theme` on the wrapper and merges canvas chrome from `themes`. |
-| `classNames` | Extra classes on DOM nodes (`legend`, `axisLabel`, `title`, …). Merged into `options.classNames`. |
-| `className` / `style` | Applied to the container `div`. |
-| `onReady` | Called once after construction with the chart instance. |
-| `ref` | `ZpgraphHandle`: `getInstance`, `updateOptions`, `resize`, `destroy`, `toPng`, `toCsv`, `resetZoom`, `setAnnotations`. |
-| `renderLegend` | `(data) => ReactNode`. Wins over `options.legendFormatter`. |
-| `renderTooltip` | Alias of `renderLegend` (hover tooltip = legend). |
-| `renderNoData` / `renderToolbar` | Portaled into core overlay / toolbar nodes. |
-| `loading` / `toolbar` / `thresholds` / `chartAnnotations` | Shortcuts merged into options. |
-| `onZoom` / `onPointClick` | Typed wrappers around core callbacks. |
-| `renderTitle` / `renderXLabel` / `renderYLabel` / `renderY2Label` | `ReactNode` or `() => ReactNode`, portaled into chart label divs. |
+| Prop                                                              | Description                                                                                                            |
+| ----------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| `data`                                                            | Chart series (`Data`). Changes call `updateOptions({ file })` — no destroy/recreate.                                   |
+| `options`                                                         | `Partial<ZpgraphOptions>` (without `file`). Compared by reference. User keys win over theme presets.                   |
+| `theme`                                                           | `"light"` \| `"dark"`. Sets `data-theme` on the wrapper and merges canvas chrome from `themes`.                        |
+| `classNames`                                                      | Extra classes on DOM nodes (`legend`, `axisLabel`, `title`, …). Merged into `options.classNames`.                      |
+| `className` / `style`                                             | Applied to the container `div`.                                                                                        |
+| `onReady`                                                         | Called once after construction with the chart instance.                                                                |
+| `ref`                                                             | `ZpgraphHandle`: `getInstance`, `updateOptions`, `resize`, `destroy`, `toPng`, `toCsv`, `resetZoom`, `setAnnotations`. |
+| `renderLegend`                                                    | `(data) => ReactNode`. Wins over `options.legendFormatter`.                                                            |
+| `renderTooltip`                                                   | Alias of `renderLegend` (hover tooltip = legend).                                                                      |
+| `renderNoData` / `renderToolbar`                                  | Portaled into core overlay / toolbar nodes.                                                                            |
+| `loading` / `toolbar` / `thresholds` / `chartAnnotations`         | Shortcuts merged into options.                                                                                         |
+| `onZoom` / `onPointClick`                                         | Typed wrappers around core callbacks.                                                                                  |
+| `renderTitle` / `renderXLabel` / `renderYLabel` / `renderY2Label` | `ReactNode` or `() => ReactNode`, portaled into chart label divs.                                                      |
 
 ## React render props
 
@@ -111,7 +108,7 @@ import { Zpgraph } from "react-zpgraph";
     </div>
   )}
   renderTitle={<Typography.Title level={5}>Temperatura</Typography.Title>}
-/>
+/>;
 ```
 
 Notes:
@@ -127,7 +124,7 @@ Notes:
 import { themes } from "react-zpgraph"; // re-export from zpgraph
 
 // Or pass theme prop — preferred for React apps:
-<Zpgraph data={data} theme="dark" options={{ legend: "always" }} />
+<Zpgraph data={data} theme="dark" options={{ legend: "always" }} />;
 ```
 
 - **DOM** (legend, axis labels, annotations): CSS variables on `.zpgraph` (`--zp-legend-bg`, …). Activated by `data-theme="dark"` on the chart or an ancestor.

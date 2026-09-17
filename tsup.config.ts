@@ -9,6 +9,12 @@ export default defineConfig({
   dts: false,
   clean: true,
   splitting: false,
-  external: ["react", "react-dom", "react/jsx-runtime", "zpgraph"],
+  external: [
+    "react",
+    "react-dom",
+    "react-dom/client",
+    "react/jsx-runtime",
+    "zpgraph",
+  ],
   outDir: "dist",
 });

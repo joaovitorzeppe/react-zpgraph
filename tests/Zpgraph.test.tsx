@@ -1,7 +1,8 @@
-import { createRef } from "react";
+import { createRef, act } from "react";
 import { cleanup, render } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { Zpgraph, type ZpgraphHandle } from "../src";
+import { createReactHost } from "../src/react-host";
 
 type MockInstance = {
   updateOptions: ReturnType<typeof vi.fn>;
@@ -12,7 +13,7 @@ type MockInstance = {
 const state = vi.hoisted(() => ({
   ctorCount: 0,
   lastInstance: null as MockInstance | null,
-  lastOpts: null as unknown,
+  lastOpts: null as Record<string, unknown> | null,
   instances: [] as MockInstance[],
 }));
 
@@ -21,15 +22,16 @@ vi.mock("zpgraph", () => {
     updateOptions = vi.fn();
     destroy = vi.fn();
     resize = vi.fn();
+    graphDiv = document.createElement("div");
 
     constructor(
       _div: HTMLElement,
       _data: unknown,
-      opts?: unknown,
+      opts?: Record<string, unknown>,
     ) {
       state.ctorCount += 1;
       state.lastInstance = this;
-      state.lastOpts = opts;
+      state.lastOpts = opts ?? null;
       state.instances.push(this);
     }
   }
@@ -160,5 +162,67 @@ describe("Zpgraph", () => {
     expect(state.lastOpts).toEqual({
       classNames: { legend: "rounded-md p-3" },
     });
+  });
+
+  it("injects legendFormatter when renderLegend is set", () => {
+    render(
+      <Zpgraph
+        data={sampleData}
+        renderLegend={(data) => <span>{data.xHTML}</span>}
+      />,
+    );
+    expect(typeof state.lastOpts?.legendFormatter).toBe("function");
+    const fmt = state.lastOpts!.legendFormatter as (
+      data: { xHTML?: string; series: []; i: null },
+    ) => HTMLElement;
+    let node!: HTMLElement;
+    act(() => {
+      node = fmt({ xHTML: "hi", series: [], i: null });
+    });
+    expect(node).toBeInstanceOf(HTMLElement);
+    expect(node.textContent).toContain("hi");
+  });
+
+  it("injects drawCallback when renderTitle is set", () => {
+    render(
+      <Zpgraph data={sampleData} renderTitle={<strong>Title</strong>} />,
+    );
+    expect(typeof state.lastOpts?.drawCallback).toBe("function");
+  });
+
+  it("renderLegend wins over options.legendFormatter", () => {
+    const legacy = vi.fn(() => "legacy");
+    render(
+      <Zpgraph
+        data={sampleData}
+        options={{ legendFormatter: legacy }}
+        renderLegend={() => <span>react</span>}
+      />,
+    );
+    const fmt = state.lastOpts!.legendFormatter as () => HTMLElement;
+    let node!: HTMLElement;
+    act(() => {
+      node = fmt();
+    });
+    expect(legacy).not.toHaveBeenCalled();
+    expect(node.textContent).toContain("react");
+  });
+});
+
+describe("createReactHost", () => {
+  it("renders and disposes without throwing", () => {
+    const host = createReactHost();
+    act(() => {
+      host.render(<div data-testid="x">ok</div>);
+    });
+    expect(host.element.textContent).toBe("ok");
+    act(() => {
+      host.dispose();
+    });
+    expect(host.element.textContent).toBe("");
+    act(() => {
+      host.render(<div>ignored</div>);
+    });
+    expect(host.element.textContent).toBe("");
   });
 });

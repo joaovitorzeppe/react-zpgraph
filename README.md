@@ -4,7 +4,7 @@ React bindings for [zpgraph](https://www.npmjs.com/package/zpgraph) — fast,
 typed timeseries charts. Thin wrapper: one chart instance per mount, updates
 via `updateOptions`, auto-resize with `ResizeObserver`.
 
-Works with **React 19** (primary) and **React 18**.
+Works with **React 19** (primary), **React 18**, and **React 17**.
 
 ## Install
 
@@ -17,6 +17,17 @@ Styles live in the core package (not bundled here) — required for theme tokens
 ```ts
 import "zpgraph/style.css";
 ```
+
+## Demos
+
+Interactive gallery (basic, theme, `renderLegend`, two axes, range selector,
+imperative ref, classNames, live update):
+
+```bash
+npm run demo
+```
+
+Opens Vite on port 5174. Source under [`demos/`](./demos).
 
 ## Quick start
 
@@ -65,6 +76,46 @@ export function Chart({ isDark }: { isDark: boolean }) {
 | `className` / `style` | Applied to the container `div`. |
 | `onReady` | Called once after construction with the chart instance. |
 | `ref` | `ZpgraphHandle` for imperative access. |
+| `renderLegend` | `(data) => ReactNode`. Wins over `options.legendFormatter`. |
+| `renderTitle` / `renderXLabel` / `renderYLabel` / `renderY2Label` | `ReactNode` or `() => ReactNode`, portaled into chart label divs. |
+
+## React render props
+
+Use React components (Ant Design, etc.) for the legend and chart labels.
+These props exist only on `react-zpgraph` — the core stays DOM/HTML.
+
+```tsx
+import { Typography, Flex } from "antd";
+import { Zpgraph } from "react-zpgraph";
+
+<Zpgraph
+  data={data}
+  options={{ labels: ["Date", "Alpha"], legend: "follow", title: " " }}
+  renderLegend={(data) => (
+    <div>
+      <Typography.Text strong>{data.xHTML}</Typography.Text>
+      {data.series
+        .filter((s) => s.isVisible)
+        .map((s) => (
+          <Flex key={s.label} gap={8}>
+            <span style={{ color: s.color }}>●</span>
+            <span>
+              {s.label} <b>{s.yHTML}</b> ºC
+            </span>
+          </Flex>
+        ))}
+    </div>
+  )}
+  renderTitle={<Typography.Title level={5}>Temperatura</Typography.Title>}
+/>
+```
+
+Notes:
+
+- Set a non-empty `options.title` / `xlabel` / … when using the matching `render*` prop so the core still creates the label div (a space is enough).
+- `axisLabelFormatter` and `valueFormatter` stay **strings** (tick labels use `textContent`). Pass them via `options`.
+- Annotation `shortText` is also text-only for now.
+- `render*` uses `react-dom/client` (`createRoot`). Prefer **React 18+** for these props; the rest of the wrapper still works on React 17.
 
 ## Theming
 
@@ -130,8 +181,8 @@ Use the handle for zoom buttons, series toggles, or any API not expressed as pro
 ## Peer dependencies
 
 ```
-react ^18 || ^19
-react-dom ^18 || ^19
+react ^17 || ^18 || ^19
+react-dom ^17 || ^18 || ^19
 zpgraph ^0.1.0
 ```
 

@@ -5,7 +5,8 @@
  */
 
 export { Zpgraph } from "./Zpgraph";
-export type { ZpgraphHandle, ZpgraphProps } from "./types";
+export type { ZpgraphHandle, ZpgraphProps, LabelRender } from "./types";
+export { createReactHost } from "./react-host";
 
 export type {
   Annotation,

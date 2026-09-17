@@ -82,8 +82,7 @@ export function Chart({ isDark }: { isDark: boolean }) {
 
 ## React render props
 
-Use React components (Ant Design, etc.) for the legend and chart labels.
-These props exist only on `react-zpgraph` — the core stays DOM/HTML.
+Use React components for the legend and chart labels.
 
 ```tsx
 import { Typography, Flex } from "antd";
@@ -91,7 +90,11 @@ import { Zpgraph } from "react-zpgraph";
 
 <Zpgraph
   data={data}
-  options={{ labels: ["Date", "Alpha"], tooltip: { position: "follow" }, title: " " }}
+  options={{
+    labels: ["Date", "Alpha"],
+    tooltip: { position: "follow" },
+    title: " ",
+  }}
   renderLegend={(data) => (
     <div>
       <Typography.Text strong>{data.xHTML}</Typography.Text>
@@ -171,13 +174,6 @@ ref.current?.destroy();               // usually unnecessary — unmount destroy
 ```
 
 Use the handle for zoom buttons, series toggles, or any API not expressed as props.
-
-## Performance notes
-
-- **Do not** destroy and recreate the chart when data changes. Pass a new `data` prop; the wrapper updates `file` in place.
-- Keep `options` stable when callbacks inside it are expensive (`useCallback` / hoist). A new `options` object reference triggers `updateOptions` and a redraw.
-- Container size changes call `resize()` — cheaper than rebuilding the chart.
-- Large series stay efficient: zpgraph still owns decimation and canvas rendering.
 
 ## Peer dependencies
 

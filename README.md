@@ -75,8 +75,12 @@ export function Chart({ isDark }: { isDark: boolean }) {
 | `classNames` | Extra classes on DOM nodes (`legend`, `axisLabel`, `title`, …). Merged into `options.classNames`. |
 | `className` / `style` | Applied to the container `div`. |
 | `onReady` | Called once after construction with the chart instance. |
-| `ref` | `ZpgraphHandle` for imperative access. |
+| `ref` | `ZpgraphHandle`: `getInstance`, `updateOptions`, `resize`, `destroy`, `toPng`, `toCsv`, `resetZoom`, `setAnnotations`. |
 | `renderLegend` | `(data) => ReactNode`. Wins over `options.legendFormatter`. |
+| `renderTooltip` | Alias of `renderLegend` (hover tooltip = legend). |
+| `renderNoData` / `renderToolbar` | Portaled into core overlay / toolbar nodes. |
+| `loading` / `toolbar` / `thresholds` / `chartAnnotations` | Shortcuts merged into options. |
+| `onZoom` / `onPointClick` | Typed wrappers around core callbacks. |
 | `renderTitle` / `renderXLabel` / `renderYLabel` / `renderY2Label` | `ReactNode` or `() => ReactNode`, portaled into chart label divs. |
 
 ## React render props

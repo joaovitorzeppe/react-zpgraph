@@ -9,6 +9,8 @@ export type { ZpgraphHandle, ZpgraphProps } from "./types";
 
 export type {
   Annotation,
+  ChartClassNames,
+  ChartTheme,
   Data,
   DataArray,
   InteractionModel,
@@ -16,3 +18,5 @@ export type {
   Point,
   ZpgraphOptions,
 } from "zpgraph";
+
+export { themes } from "zpgraph";

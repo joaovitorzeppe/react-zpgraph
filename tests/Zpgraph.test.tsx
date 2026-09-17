@@ -12,6 +12,7 @@ type MockInstance = {
 const state = vi.hoisted(() => ({
   ctorCount: 0,
   lastInstance: null as MockInstance | null,
+  lastOpts: null as unknown,
   instances: [] as MockInstance[],
 }));
 
@@ -24,15 +25,21 @@ vi.mock("zpgraph", () => {
     constructor(
       _div: HTMLElement,
       _data: unknown,
-      _opts?: unknown,
+      opts?: unknown,
     ) {
       state.ctorCount += 1;
       state.lastInstance = this;
+      state.lastOpts = opts;
       state.instances.push(this);
     }
   }
 
-  return { default: MockZpgraph, Zpgraph: MockZpgraph };
+  const themes = {
+    light: { axisLineColor: "black", gridLineColor: "rgb(128,128,128)" },
+    dark: { axisLineColor: "#c0c0c0", gridLineColor: "rgb(80,80,80)" },
+  };
+
+  return { default: MockZpgraph, Zpgraph: MockZpgraph, themes };
 });
 
 const sampleData: [Date, number][] = [
@@ -47,6 +54,7 @@ afterEach(() => {
 beforeEach(() => {
   state.ctorCount = 0;
   state.lastInstance = null;
+  state.lastOpts = null;
   state.instances = [];
 });
 
@@ -112,5 +120,45 @@ describe("Zpgraph", () => {
       undefined,
     );
     expect(instance.resize).toHaveBeenCalled();
+  });
+
+  it("sets data-theme on the wrapper when theme is dark", () => {
+    const { container } = render(
+      <Zpgraph data={sampleData} theme="dark" />,
+    );
+    expect(container.firstElementChild?.getAttribute("data-theme")).toBe(
+      "dark",
+    );
+  });
+
+  it("merges dark theme preset into updateOptions when theme changes", () => {
+    const { rerender } = render(
+      <Zpgraph data={sampleData} theme="light" />,
+    );
+    const instance = state.lastInstance!;
+    instance.updateOptions.mockClear();
+
+    rerender(<Zpgraph data={sampleData} theme="dark" />);
+
+    expect(state.ctorCount).toBe(1);
+    expect(instance.updateOptions).toHaveBeenCalledWith(
+      expect.objectContaining({
+        theme: "dark",
+        axisLineColor: "#c0c0c0",
+        gridLineColor: "rgb(80,80,80)",
+      }),
+    );
+  });
+
+  it("forwards classNames into options on mount", () => {
+    render(
+      <Zpgraph
+        data={sampleData}
+        classNames={{ legend: "rounded-md p-3" }}
+      />,
+    );
+    expect(state.lastOpts).toEqual({
+      classNames: { legend: "rounded-md p-3" },
+    });
   });
 });

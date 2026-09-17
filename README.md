@@ -12,7 +12,7 @@ Works with **React 19** (primary) and **React 18**.
 npm install react-zpgraph zpgraph
 ```
 
-Styles live in the core package (not bundled here):
+Styles live in the core package (not bundled here) — required for theme tokens:
 
 ```ts
 import "zpgraph/style.css";
@@ -30,7 +30,7 @@ const data = [
   [new Date("2024-01-02"), 12, 18],
 ];
 
-export function Chart() {
+export function Chart({ isDark }: { isDark: boolean }) {
   const ref = useRef<ZpgraphHandle>(null);
 
   return (
@@ -41,6 +41,7 @@ export function Chart() {
       <Zpgraph
         ref={ref}
         data={data}
+        theme={isDark ? "dark" : "light"}
         options={{
           labels: ["Date", "Alpha", "Beta"],
           legend: "always",
@@ -58,10 +59,55 @@ export function Chart() {
 | Prop | Description |
 |------|-------------|
 | `data` | Chart series (`Data`). Changes call `updateOptions({ file })` — no destroy/recreate. |
-| `options` | `Partial<ZpgraphOptions>` (without `file`). Compared by reference. |
+| `options` | `Partial<ZpgraphOptions>` (without `file`). Compared by reference. User keys win over theme presets. |
+| `theme` | `"light"` \| `"dark"`. Sets `data-theme` on the wrapper and merges canvas chrome from `themes`. |
+| `classNames` | Extra classes on DOM nodes (`legend`, `axisLabel`, `title`, …). Merged into `options.classNames`. |
 | `className` / `style` | Applied to the container `div`. |
 | `onReady` | Called once after construction with the chart instance. |
 | `ref` | `ZpgraphHandle` for imperative access. |
+
+## Theming
+
+```tsx
+import { themes } from "react-zpgraph"; // re-export from zpgraph
+
+// Or pass theme prop — preferred for React apps:
+<Zpgraph data={data} theme="dark" options={{ legend: "always" }} />
+```
+
+- **DOM** (legend, axis labels, annotations): CSS variables on `.zpgraph` (`--zp-legend-bg`, …). Activated by `data-theme="dark"` on the chart or an ancestor.
+- **Canvas** (grid, axes, highlight, range selector): `themes.light` / `themes.dark` option presets.
+- **Series `colors`**: still owned by the app — theme does not change them.
+
+Override layout tokens without rewriting rules:
+
+```css
+.zpgraph {
+  --zp-legend-padding: 0.7rem 1rem;
+  --zp-legend-radius: 4px;
+  --zp-axis-label-font-size: 12px;
+  --zp-axis-label-opacity: 0.8;
+}
+```
+
+Or pass Tailwind utilities:
+
+```tsx
+<Zpgraph
+  data={data}
+  theme="dark"
+  classNames={{
+    legend: "rounded-md p-3 shadow-lg",
+    axisLabel: "text-xs opacity-80",
+  }}
+/>
+```
+
+Override a single chrome color while keeping the rest of the theme:
+
+```tsx
+<Zpgraph theme="dark" options={{ gridLineColor: "rgb(255,0,0)" }} data={data} />
+```
 
 ## Imperative handle
 

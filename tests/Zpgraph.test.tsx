@@ -1,7 +1,7 @@
 import { createRef, act } from "react";
 import { cleanup, render } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { Zpgraph, type ZpgraphHandle } from "../src";
+import { Zpgraph, ZpgraphCore, themes, type ZpgraphHandle } from "../src";
 import { createReactHost } from "../src/react-host";
 
 type MockInstance = {
@@ -69,6 +69,13 @@ beforeEach(() => {
   state.lastInstance = null;
   state.lastOpts = null;
   state.instances = [];
+});
+
+describe("core re-exports", () => {
+  it("exposes the peer class as ZpgraphCore", () => {
+    expect(ZpgraphCore).toBeTruthy();
+    expect(themes.dark).toBeTruthy();
+  });
 });
 
 describe("Zpgraph", () => {

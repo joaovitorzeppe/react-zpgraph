@@ -1,5 +1,10 @@
 # Changes
 
+## 0.5.0
+
+- Re-export core types and `ZpgraphCore` from `react-zpgraph`
+- Demo tab **Interaction** — custom model via `ZpgraphCore.defaultInteractionModel`
+
 ## 0.4.0
 
 - ESM-only package (dropped CJS build)

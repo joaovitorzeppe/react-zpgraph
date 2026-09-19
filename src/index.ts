@@ -15,16 +15,5 @@ export type {
 export { createReactHost } from "./react-host";
 export { createExtrasController } from "./extras-bridge";
 
-export type {
-  Annotation,
-  ChartClassNames,
-  ChartTheme,
-  Data,
-  DataArray,
-  InteractionModel,
-  LegendData,
-  Point,
-  ZpgraphOptions,
-} from "zpgraph";
-
-export { themes } from "zpgraph";
+export type * from "zpgraph";
+export { default as ZpgraphCore, themes } from "zpgraph";

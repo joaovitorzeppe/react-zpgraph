@@ -9,15 +9,20 @@ Works with **React 19** (primary), **React 18**, and **React 17**.
 ## Install
 
 ```bash
-npm install react-zpgraph zpgraph
+npm install react-zpgraph
 ```
 
-ESM only — `import { Zpgraph } from "react-zpgraph"`.
+ESM only. Types, `themes`, and `ZpgraphCore` come from `react-zpgraph`. Import `"zpgraph"` only for extras or
+plugins the wrapper does not expose.
+
+```ts
+import { Zpgraph, ZpgraphCore, type ThresholdBand } from "react-zpgraph";
+```
 
 ## Demos
 
 Interactive gallery (basic, theme, `renderLegend`, two axes, range selector,
-imperative ref, classNames, live update, toolbar, extras):
+imperative ref, classNames, live update, toolbar, extras, interaction model):
 
 ```bash
 npm run demo

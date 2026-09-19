@@ -1,5 +1,9 @@
 # Changes
 
+## 0.4.0
+
+- ESM-only package (dropped CJS build)
+
 ## 0.3.0
 
 - More customization added to labels

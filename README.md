@@ -12,6 +12,8 @@ Works with **React 19** (primary), **React 18**, and **React 17**.
 npm install react-zpgraph zpgraph
 ```
 
+ESM only — `import { Zpgraph } from "react-zpgraph"`.
+
 ## Demos
 
 Interactive gallery (basic, theme, `renderLegend`, two axes, range selector,

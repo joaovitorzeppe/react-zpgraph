@@ -62,35 +62,54 @@ export type ExtrasController = {
   clearMeasure: () => void;
 };
 
+type LocaleTarget = Parameters<typeof applyLocale>[0];
+
+const isLocaleTarget = (g: unknown): g is LocaleTarget =>
+  typeof g === "object" && g !== null;
+
+const isPlotter = (v: unknown): v is Plotter => typeof v === "function";
+
 const resolveLocale = (locale: LocaleProp | undefined): LocalePack | null => {
-  if (locale == null) return null;
+  if (locale == null) {
+    return null;
+  }
   if (typeof locale === "string") {
     return packs[locale] ?? null;
   }
   return locale;
 };
 
-const asOpts = <T extends object>(value: boolean | T | undefined): T | null => {
-  if (value === true) return {} as T;
-  if (value && typeof value === "object") return value;
+const asOpts = <T extends object>(
+  value: boolean | T | undefined,
+): Partial<T> | null => {
+  if (value === true) {
+    return {};
+  }
+  if (value && typeof value === "object") {
+    return value;
+  }
   return null;
 };
 
 const normalizePlotters = (
   plotter: ZpgraphOptions["plotter"],
 ): Plotter[] | null => {
-  if (!plotter) return null;
+  if (!plotter) {
+    return null;
+  }
   return Array.isArray(plotter) ? [...plotter] : [plotter];
 };
 
 const defaultPlotters = (): Plotter[] | null => {
   const P = ZpgraphCore.Plotters;
-  if (!P?.fillPlotter || !P?.linePlotter) return null;
-  return [
-    P.fillPlotter as Plotter,
-    P.errorPlotter as Plotter,
-    P.linePlotter as Plotter,
-  ];
+  if (!P?.fillPlotter || !P?.linePlotter || !P?.errorPlotter) {
+    return null;
+  }
+  const list = [P.fillPlotter, P.errorPlotter, P.linePlotter];
+  if (!list.every(isPlotter)) {
+    return null;
+  }
+  return list;
 };
 
 const buildPlotters = (
@@ -99,10 +118,14 @@ const buildPlotters = (
 ): Plotter[] | null => {
   const maOpts = asOpts<MovingAverageOptions>(props.movingAverage);
   const fbOpts = props.fillBetween ?? null;
-  if (!maOpts && !fbOpts) return null;
+  if (!maOpts && !fbOpts) {
+    return null;
+  }
 
   let list = normalizePlotters(user) ?? defaultPlotters();
-  if (!list) return null;
+  if (!list) {
+    return null;
+  }
 
   if (fbOpts) {
     list = [createFillBetweenPlotter(fbOpts), ...list];
@@ -116,8 +139,12 @@ const buildPlotters = (
 const spanOptions = (
   value: ExtrasProps["spanBands"],
 ): SpanBandsOptions | null => {
-  if (!value) return null;
-  if (Array.isArray(value)) return { bands: value };
+  if (!value) {
+    return null;
+  }
+  if (Array.isArray(value)) {
+    return { bands: value };
+  }
   return value;
 };
 
@@ -144,13 +171,13 @@ export const createExtrasController = (
   const zlOpts = asOpts<ZoomLimitsOptions>(initial.zoomLimits);
   if (zlOpts) {
     zoomLimits = new ZoomLimits(zlOpts);
-    plugins.push(zoomLimits as unknown as Plugin);
+    plugins.push(zoomLimits);
   }
 
   const kbOpts = asOpts<KeyboardOptions>(initial.keyboard);
   if (kbOpts) {
     keyboard = new Keyboard(kbOpts);
-    plugins.push(keyboard as unknown as Plugin);
+    plugins.push(keyboard);
   }
 
   const measureEnabled = initial.measure != null || initial.onMeasure != null;
@@ -160,7 +187,7 @@ export const createExtrasController = (
       ...base,
       onMeasure: (r) => onMeasureRef?.(r),
     });
-    plugins.push(measure as unknown as Plugin);
+    plugins.push(measure);
   }
 
   const brushEnabled =
@@ -172,22 +199,22 @@ export const createExtrasController = (
       ) ?? {};
     brush = new BrushSelect({
       ...base,
-      active: !!initial.brushActive,
+      active: Boolean(initial.brushActive),
       onSelect: (r) => onBrushRef?.(r),
     });
-    plugins.push(brush as unknown as Plugin);
+    plugins.push(brush);
   }
 
   const urlOpts = asOpts<UrlSyncOptions>(initial.urlSync);
   if (urlOpts) {
     urlSync = new UrlSync(urlOpts);
-    plugins.push(urlSync as unknown as Plugin);
+    plugins.push(urlSync);
   }
 
   const spanOpts = spanOptions(initial.spanBands);
   if (spanOpts) {
     spanBands = new SpanBands(spanOpts);
-    plugins.push(spanBands as unknown as Plugin);
+    plugins.push(spanBands);
   }
 
   const plotterKey = (props: ExtrasProps) =>
@@ -199,9 +226,9 @@ export const createExtrasController = (
   return {
     mergeIntoOptions(opts) {
       userPlotter = opts?.plotter;
-      const merged: Partial<ZpgraphOptions> = { ...(opts ?? {}) };
+      const merged: Partial<ZpgraphOptions> = { ...opts };
       if (plugins.length) {
-        const prev = (merged.plugins as Plugin[] | undefined) ?? [];
+        const prev = Array.isArray(merged.plugins) ? merged.plugins : [];
         merged.plugins = [...prev, ...plugins];
       }
       const plotters = buildPlotters(userPlotter, initial);
@@ -214,7 +241,9 @@ export const createExtrasController = (
 
     afterMount(g) {
       const locale = resolveLocale(initial.locale);
-      if (locale) applyLocale(g as never, locale);
+      if (locale && isLocaleTarget(g)) {
+        applyLocale(g, locale);
+      }
     },
 
     sync(props, g) {
@@ -222,11 +251,11 @@ export const createExtrasController = (
       onBrushRef = props.onBrushSelect;
 
       if (zoomLimits && props.zoomLimits && props.zoomLimits !== true) {
-        (zoomLimits as { opts_: ZoomLimitsOptions }).opts_ = props.zoomLimits;
+        zoomLimits.opts_ = props.zoomLimits;
       }
 
       if (brush && props.brushActive != null) {
-        brush.setActive(!!props.brushActive);
+        brush.setActive(props.brushActive);
       }
 
       const nextSpan = spanOptions(props.spanBands);
@@ -234,13 +263,19 @@ export const createExtrasController = (
         spanBands.setBands(nextSpan.bands);
       }
 
-      if (!g) return;
+      if (!g) {
+        return;
+      }
 
       const locale = resolveLocale(props.locale);
-      if (locale) applyLocale(g as never, locale);
+      if (locale && isLocaleTarget(g)) {
+        applyLocale(g, locale);
+      }
 
       const key = plotterKey(props);
-      if (key === lastPlotterKey) return;
+      if (key === lastPlotterKey) {
+        return;
+      }
       lastPlotterKey = key;
       const rebuilt = buildPlotters(userPlotter, props);
       if (rebuilt) {

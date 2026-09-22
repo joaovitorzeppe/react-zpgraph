@@ -68,20 +68,42 @@ const OVERLAY_SLOTS: Array<{
 
 const pickExtras = (props: ZpgraphProps): ExtrasProps => {
   const out: ExtrasProps = {};
-  if (props.zoomLimits !== undefined) out.zoomLimits = props.zoomLimits;
-  if (props.keyboard !== undefined) out.keyboard = props.keyboard;
-  if (props.measure !== undefined) out.measure = props.measure;
-  if (props.onMeasure !== undefined) out.onMeasure = props.onMeasure;
-  if (props.brushSelect !== undefined) out.brushSelect = props.brushSelect;
-  if (props.brushActive !== undefined) out.brushActive = props.brushActive;
-  if (props.onBrushSelect !== undefined)
+  if (props.zoomLimits !== undefined) {
+    out.zoomLimits = props.zoomLimits;
+  }
+  if (props.keyboard !== undefined) {
+    out.keyboard = props.keyboard;
+  }
+  if (props.measure !== undefined) {
+    out.measure = props.measure;
+  }
+  if (props.onMeasure !== undefined) {
+    out.onMeasure = props.onMeasure;
+  }
+  if (props.brushSelect !== undefined) {
+    out.brushSelect = props.brushSelect;
+  }
+  if (props.brushActive !== undefined) {
+    out.brushActive = props.brushActive;
+  }
+  if (props.onBrushSelect !== undefined) {
     out.onBrushSelect = props.onBrushSelect;
-  if (props.urlSync !== undefined) out.urlSync = props.urlSync;
-  if (props.locale !== undefined) out.locale = props.locale;
-  if (props.spanBands !== undefined) out.spanBands = props.spanBands;
-  if (props.movingAverage !== undefined)
+  }
+  if (props.urlSync !== undefined) {
+    out.urlSync = props.urlSync;
+  }
+  if (props.locale !== undefined) {
+    out.locale = props.locale;
+  }
+  if (props.spanBands !== undefined) {
+    out.spanBands = props.spanBands;
+  }
+  if (props.movingAverage !== undefined) {
     out.movingAverage = props.movingAverage;
-  if (props.fillBetween !== undefined) out.fillBetween = props.fillBetween;
+  }
+  if (props.fillBetween !== undefined) {
+    out.fillBetween = props.fillBetween;
+  }
   return out;
 };
 const mergeShortcutOptions = (
@@ -96,9 +118,15 @@ const mergeShortcutOptions = (
   },
 ): Partial<ZpgraphOptions> => {
   const merged: Partial<ZpgraphOptions> = { ...options };
-  if (shortcuts.loading != null) merged.loading = shortcuts.loading;
-  if (shortcuts.toolbar != null) merged.toolbar = shortcuts.toolbar;
-  if (shortcuts.thresholds != null) merged.thresholds = shortcuts.thresholds;
+  if (shortcuts.loading != null) {
+    merged.loading = shortcuts.loading;
+  }
+  if (shortcuts.toolbar != null) {
+    merged.toolbar = shortcuts.toolbar;
+  }
+  if (shortcuts.thresholds != null) {
+    merged.thresholds = shortcuts.thresholds;
+  }
   if (shortcuts.chartAnnotations != null) {
     merged.chartAnnotations = shortcuts.chartAnnotations;
   }
@@ -187,9 +215,13 @@ const mergeOptions = (
     merged.drawCallback = (g: ZpgraphInstance, isInitial: boolean) => {
       for (const { key, selector } of LABEL_SLOTS) {
         const slot = slots[key];
-        if (!slot) continue;
+        if (!slot) {
+          continue;
+        }
         const target = g.graphDiv.querySelector(selector);
-        if (!target) continue;
+        if (!target) {
+          continue;
+        }
 
         let host = hosts.labels[key];
         if (!host) {
@@ -200,14 +232,20 @@ const mergeOptions = (
           target.replaceChildren(host.element);
         }
         const node = resolveNode(slot);
-        if (node !== undefined) host.render(node);
+        if (node !== undefined) {
+          host.render(node);
+        }
       }
 
       for (const { key, selector } of OVERLAY_SLOTS) {
         const slot = slots[key];
-        if (!slot) continue;
+        if (!slot) {
+          continue;
+        }
         const target = g.graphDiv.querySelector(selector);
-        if (!target) continue;
+        if (!target) {
+          continue;
+        }
         let host = hosts.overlays[key];
         if (!host) {
           host = createReactHost();
@@ -217,7 +255,9 @@ const mergeOptions = (
           target.replaceChildren(host.element);
         }
         const node = resolveNode(slot);
-        if (node !== undefined) host.render(node);
+        if (node !== undefined) {
+          host.render(node);
+        }
       }
 
       if (dynamic && hasDynamic) {
@@ -234,7 +274,9 @@ const mergeOptions = (
     };
   }
 
-  if (!theme) return merged;
+  if (!theme) {
+    return merged;
+  }
   return { ...themes[theme], ...merged, theme };
 };
 
@@ -244,7 +286,7 @@ const mergeOptions = (
  * Extras plugins attach on first mount from props (see ExtrasProps).
  */
 export const Zpgraph = forwardRef<ZpgraphHandle, ZpgraphProps>(
-  function Zpgraph(props, ref) {
+  (props, ref) => {
     const {
       data,
       options,
@@ -335,7 +377,9 @@ export const Zpgraph = forwardRef<ZpgraphHandle, ZpgraphProps>(
 
     const resolveSpanBands = (): SpanBand[] | undefined => {
       const raw = extrasPropsRef.current.spanBands;
-      if (!raw) return undefined;
+      if (!raw) {
+        return undefined;
+      }
       return Array.isArray(raw) ? raw : raw.bands;
     };
 
@@ -393,7 +437,9 @@ export const Zpgraph = forwardRef<ZpgraphHandle, ZpgraphProps>(
 
     useLayoutEffect(() => {
       const el = containerRef.current;
-      if (!el) return;
+      if (!el) {
+        return undefined;
+      }
 
       if (renderLegendRef.current && !legendHostRef.current) {
         legendHostRef.current = createReactHost();
@@ -409,6 +455,10 @@ export const Zpgraph = forwardRef<ZpgraphHandle, ZpgraphProps>(
       instanceRef.current = g;
       extras.afterMount(g);
       onReadyRef.current?.(g);
+
+      const labelHosts = labelHostsRef.current;
+      const overlayHosts = overlayHostsRef.current;
+      const dynamicHosts = dynamicHostsRef.current;
 
       let ro: ResizeObserver | undefined;
       if (typeof ResizeObserver !== "undefined") {
@@ -430,21 +480,22 @@ export const Zpgraph = forwardRef<ZpgraphHandle, ZpgraphProps>(
         }
         legendHostRef.current?.dispose();
         legendHostRef.current = null;
-        for (const host of Object.values(labelHostsRef.current)) {
+        for (const host of Object.values(labelHosts)) {
           host?.dispose();
         }
         labelHostsRef.current = {};
-        for (const host of Object.values(overlayHostsRef.current)) {
+        for (const host of Object.values(overlayHosts)) {
           host?.dispose();
         }
         overlayHostsRef.current = {};
-        disposeDynamicLabelHosts(dynamicHostsRef.current);
+        disposeDynamicLabelHosts(dynamicHosts);
       };
-      // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     useLayoutEffect(() => {
-      if (dataRef.current === data) return;
+      if (dataRef.current === data) {
+        return;
+      }
       dataRef.current = data;
       instanceRef.current?.updateOptions({ file: data });
     }, [data]);

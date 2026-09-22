@@ -34,15 +34,15 @@ const attachRoot = (container: HTMLElement): RootApi => {
   }
 
   // React 17 (and React 18 deprecated path)
-  const legacy = ReactDOM as unknown as {
-    render: (
-      node: ReactNode,
-      container: Element | DocumentFragment,
-    ) => void;
-    unmountComponentAtNode: (container: Element) => boolean;
-  };
-
-  if (typeof legacy.render !== "function") {
+  const legacyRender: unknown = Reflect.get(ReactDOM, "render");
+  const legacyUnmount: unknown = Reflect.get(
+    ReactDOM,
+    "unmountComponentAtNode",
+  );
+  if (
+    typeof legacyRender !== "function" ||
+    typeof legacyUnmount !== "function"
+  ) {
     throw new Error(
       "react-zpgraph: need React 18+ (react-dom/client) or React 17 ReactDOM.render",
     );
@@ -50,10 +50,10 @@ const attachRoot = (container: HTMLElement): RootApi => {
 
   return {
     render: (node) => {
-      legacy.render(node, container);
+      Function.prototype.call.call(legacyRender, ReactDOM, node, container);
     },
     unmount: () => {
-      legacy.unmountComponentAtNode(container);
+      Function.prototype.call.call(legacyUnmount, ReactDOM, container);
     },
   };
 };
@@ -69,12 +69,18 @@ export const createReactHost = (): ReactHost => {
   return {
     element,
     render: (node) => {
-      if (disposed) return;
-      if (!root) root = attachRoot(element);
+      if (disposed) {
+        return;
+      }
+      if (!root) {
+        root = attachRoot(element);
+      }
       root.render(node);
     },
     dispose: () => {
-      if (disposed) return;
+      if (disposed) {
+        return;
+      }
       disposed = true;
       root?.unmount();
       root = null;
@@ -83,11 +89,15 @@ export const createReactHost = (): ReactHost => {
 };
 
 /** Resolve `ReactNode | (() => ReactNode)` to a node. */
+const isNodeThunk = (
+  value: ReactNode | (() => ReactNode),
+): value is () => ReactNode => typeof value === "function";
+
 export const resolveNode = (
   value: ReactNode | (() => ReactNode) | undefined,
 ): ReactNode | undefined => {
-  if (value === undefined) return undefined;
-  return typeof value === "function"
-    ? (value as () => ReactNode)()
-    : value;
+  if (value === undefined) {
+    return undefined;
+  }
+  return isNodeThunk(value) ? value() : value;
 };

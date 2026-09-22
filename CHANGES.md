@@ -1,5 +1,11 @@
 # Changes
 
+## 0.6.0
+
+- Peer/dev dependency `zpgraph` ^1.3.0
+- Type-aware oxlint: drop unsafe assertions; lint script + `.oxlintrc.json`
+- Safer extras/react-host bridges (guards instead of casts)
+
 ## 0.5.1
 
 - Package checks: `publint` + `attw` (`npm run check:pkg`)

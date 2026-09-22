@@ -47,12 +47,12 @@ vi.mock("zpgraph", () => {
     }
   }
 
-  const themes = {
+  const mockThemes = {
     light: { axisLineColor: "black", gridLineColor: "rgb(128,128,128)" },
     dark: { axisLineColor: "#c0c0c0", gridLineColor: "rgb(80,80,80)" },
   };
 
-  return { default: MockZpgraph, Zpgraph: MockZpgraph, themes };
+  return { default: MockZpgraph, Zpgraph: MockZpgraph, themes: mockThemes };
 });
 
 const sampleData: [Date, number][] = [
@@ -155,8 +155,11 @@ describe("Zpgraph", () => {
         locale="pt"
       />,
     );
-    const plugins = state.lastOpts?.plugins as unknown[];
+    const plugins = state.lastOpts?.plugins;
     expect(Array.isArray(plugins)).toBe(true);
+    if (!Array.isArray(plugins)) {
+      return;
+    }
     expect(plugins.length).toBeGreaterThanOrEqual(2);
   });
 
@@ -207,17 +210,21 @@ describe("Zpgraph", () => {
         renderLegend={(data) => <span>{data.xHTML}</span>}
       />,
     );
-    expect(typeof state.lastOpts?.legendFormatter).toBe("function");
-    const fmt = state.lastOpts!.legendFormatter as (data: {
-      xHTML?: string;
-      series: [];
-      i: null;
-    }) => HTMLElement;
+    const fmt = state.lastOpts?.legendFormatter;
+    expect(typeof fmt).toBe("function");
+    if (typeof fmt !== "function") {
+      return;
+    }
     let node!: HTMLElement;
     act(() => {
-      node = fmt({ xHTML: "hi", series: [], i: null });
+      const result = Reflect.apply(fmt, undefined, [
+        { xHTML: "hi", series: [], i: null },
+      ]);
+      if (!(result instanceof HTMLElement)) {
+        throw new Error("expected HTMLElement");
+      }
+      node = result;
     });
-    expect(node).toBeInstanceOf(HTMLElement);
     expect(node.textContent).toContain("hi");
   });
 
@@ -235,10 +242,18 @@ describe("Zpgraph", () => {
         renderLegend={() => <span>react</span>}
       />,
     );
-    const fmt = state.lastOpts!.legendFormatter as () => HTMLElement;
+    const fmt = state.lastOpts?.legendFormatter;
+    expect(typeof fmt).toBe("function");
+    if (typeof fmt !== "function") {
+      return;
+    }
     let node!: HTMLElement;
     act(() => {
-      node = fmt();
+      const result = Reflect.apply(fmt, undefined, []);
+      if (!(result instanceof HTMLElement)) {
+        throw new Error("expected HTMLElement");
+      }
+      node = result;
     });
     expect(legacy).not.toHaveBeenCalled();
     expect(node.textContent).toContain("react");

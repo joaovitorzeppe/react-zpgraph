@@ -43,9 +43,12 @@ export const paintDynamicLabels = (
       '[data-zp-label="threshold"]',
     );
     const labeled = (thresholds ?? []).filter((b) => b.label);
+    const renderThreshold = renders.renderThresholdLabel;
     els.forEach((el, i) => {
       const band = labeled[i];
-      if (!band) return;
+      if (!band) {
+        return;
+      }
       let host = hosts.threshold[i];
       if (!host) {
         host = createReactHost();
@@ -54,7 +57,7 @@ export const paintDynamicLabels = (
       if (host.element.parentElement !== el) {
         el.replaceChildren(host.element);
       }
-      host.render(renders.renderThresholdLabel!(band, i));
+      host.render(renderThreshold(band, i));
     });
   }
 
@@ -63,9 +66,12 @@ export const paintDynamicLabels = (
       '[data-zp-label="span-band"]',
     );
     const labeled = (spanBands ?? []).filter((b) => b.label);
+    const renderSpan = renders.renderSpanBandLabel;
     els.forEach((el, i) => {
       const band = labeled[i];
-      if (!band) return;
+      if (!band) {
+        return;
+      }
       let host = hosts.spanBand[i];
       if (!host) {
         host = createReactHost();
@@ -74,14 +80,16 @@ export const paintDynamicLabels = (
       if (host.element.parentElement !== el) {
         el.replaceChildren(host.element);
       }
-      host.render(renders.renderSpanBandLabel!(band, i));
+      host.render(renderSpan(band, i));
     });
   }
 
   if (renders.renderMeasureLabel) {
     const el = graphDiv.querySelector<HTMLElement>('[data-zp-label="measure"]');
     if (el && el.style.display !== "none") {
-      if (!hosts.measure) hosts.measure = createReactHost();
+      if (!hosts.measure) {
+        hosts.measure = createReactHost();
+      }
       const host = hosts.measure;
       if (host.element.parentElement !== el) {
         el.replaceChildren(host.element);
@@ -102,8 +110,12 @@ export const disposeDynamicLabelHosts = (hosts: {
   spanBand: ReactHost[];
   measure: ReactHost | null;
 }): void => {
-  for (const h of hosts.threshold) h.dispose();
-  for (const h of hosts.spanBand) h.dispose();
+  for (const h of hosts.threshold) {
+    h.dispose();
+  }
+  for (const h of hosts.spanBand) {
+    h.dispose();
+  }
   hosts.measure?.dispose();
   hosts.threshold.length = 0;
   hosts.spanBand.length = 0;

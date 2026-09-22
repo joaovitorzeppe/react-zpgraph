@@ -1,5 +1,11 @@
 # Changes
 
+## 0.6.1
+
+- Build: `tsdown` only (drop `tsc` emit + `fix-dts-extensions`)
+- No source maps / declaration maps in the package
+- Types come from tsdown’s bundled `index.d.ts`
+
 ## 0.6.0
 
 - Peer/dev dependency `zpgraph` ^1.3.0

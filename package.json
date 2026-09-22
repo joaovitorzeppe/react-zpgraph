@@ -39,7 +39,7 @@
     "README.md"
   ],
   "scripts": {
-    "build": "tsdown && tsc -p tsconfig.build.json && node scripts/fix-dts-extensions.mjs",
+    "build": "tsdown",
     "check:pkg": "publint && attw --pack . --profile esm-only",
     "lint": "oxlint",
     "typecheck": "tsc -p tsconfig.json --noEmit",

@@ -1,6 +1,6 @@
 {
   "name": "react-zpgraph",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "description": "React bindings for zpgraph — fast typed timeseries charts",
   "keywords": [
     "react",
@@ -39,13 +39,14 @@
     "README.md"
   ],
   "scripts": {
-    "build": "tsdown && tsc -p tsconfig.build.json",
+    "build": "tsdown && tsc -p tsconfig.build.json && node scripts/fix-dts-extensions.mjs",
+    "check:pkg": "publint && attw --pack . --profile esm-only",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
     "demo": "vite --config demos/vite.config.ts",
     "demo:build": "vite build --config demos/vite.config.ts",
-    "prepublishOnly": "npm run typecheck && npm run test && npm run build"
+    "prepublishOnly": "npm run typecheck && npm run test && npm run build && npm run check:pkg"
   },
   "peerDependencies": {
     "react": "^17.0.0 || ^18.0.0 || ^19.0.0",
@@ -53,12 +54,14 @@
     "zpgraph": "^1.1.0"
   },
   "devDependencies": {
+    "@arethetypeswrong/cli": "^0.18.5",
     "@testing-library/react": "^16.3.0",
     "@types/node": "^22.15.0",
     "@types/react": "^19.1.0",
     "@types/react-dom": "^19.1.0",
     "@vitejs/plugin-react": "^6.1.1",
     "jsdom": "^26.1.0",
+    "publint": "^0.3.24",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "tsdown": "^0.23.0",

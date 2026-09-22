@@ -1,5 +1,10 @@
 # Changes
 
+## 0.5.1
+
+- Package checks: `publint` + `attw` (`npm run check:pkg`)
+- Emit `.d.ts` with `.js` relative import extensions (Node16 ESM)
+
 ## 0.5.0
 
 - Re-export core types and `ZpgraphCore` from `react-zpgraph`

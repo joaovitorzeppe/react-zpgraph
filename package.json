@@ -1,6 +1,6 @@
 {
   "name": "react-zpgraph",
-  "version": "0.6.0",
+  "version": "0.6.1",
   "description": "React bindings for zpgraph — fast typed timeseries charts",
   "keywords": [
     "react",

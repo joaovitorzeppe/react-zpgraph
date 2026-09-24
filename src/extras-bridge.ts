@@ -4,9 +4,7 @@
  * MIT-licensed: https://opensource.org/license/MIT
  */
 
-import ZpgraphCore from "zpgraph";
-import type { Plugin, Plotter, ZpgraphOptions } from "zpgraph";
-import type Zpgraph from "zpgraph";
+import { Zpgraph as ZpgraphCore, type Plugin, type Plotter, type ZpgraphOptions, type Zpgraph } from "zpgraph";
 
 import ZoomLimits, { type ZoomLimitsOptions } from "zpgraph/extras/zoom-limits";
 import Keyboard, { type KeyboardOptions } from "zpgraph/extras/keyboard";
@@ -68,6 +66,11 @@ const isLocaleTarget = (g: unknown): g is LocaleTarget =>
   typeof g === "object" && g !== null;
 
 const isPlotter = (v: unknown): v is Plotter => typeof v === "function";
+
+const hasAddPlugins = (
+  g: object,
+): g is { addPlugins: (extra: unknown[]) => void } =>
+  "addPlugins" in g && typeof g.addPlugins === "function";
 
 const resolveLocale = (locale: LocaleProp | undefined): LocalePack | null => {
   if (locale == null) {
@@ -250,8 +253,68 @@ export const createExtrasController = (
       onMeasureRef = props.onMeasure;
       onBrushRef = props.onBrushSelect;
 
-      if (zoomLimits && props.zoomLimits && props.zoomLimits !== true) {
+      if (!zoomLimits) {
+        const next = asOpts<ZoomLimitsOptions>(props.zoomLimits);
+        if (next && g && hasAddPlugins(g)) {
+          zoomLimits = new ZoomLimits(next);
+          plugins.push(zoomLimits);
+          g.addPlugins([zoomLimits]);
+        }
+      } else if (props.zoomLimits && props.zoomLimits !== true) {
         zoomLimits.opts_ = props.zoomLimits;
+      }
+
+      if (!keyboard) {
+        const next = asOpts<KeyboardOptions>(props.keyboard);
+        if (next && g && hasAddPlugins(g)) {
+          keyboard = new Keyboard(next);
+          plugins.push(keyboard);
+          g.addPlugins([keyboard]);
+        }
+      } else if (props.keyboard && props.keyboard !== true) {
+        keyboard.opts_ = { ...keyboard.opts_, ...props.keyboard };
+      }
+
+      if (!measure && (props.measure != null || props.onMeasure != null) && g && hasAddPlugins(g)) {
+        const base = asOpts<MeasureOptions>(props.measure) ?? {};
+        measure = new Measure({
+          ...base,
+          onMeasure: (r) => onMeasureRef?.(r),
+        });
+        plugins.push(measure);
+        g.addPlugins([measure]);
+      }
+
+      if (!brush && (props.brushSelect != null || props.onBrushSelect != null) && g && hasAddPlugins(g)) {
+        const base =
+          asOpts<Omit<BrushSelectOptions, "onSelect" | "active">>(
+            props.brushSelect,
+          ) ?? {};
+        brush = new BrushSelect({
+          ...base,
+          active: Boolean(props.brushActive),
+          onSelect: (r) => onBrushRef?.(r),
+        });
+        plugins.push(brush);
+        g.addPlugins([brush]);
+      }
+
+      if (!urlSync) {
+        const next = asOpts<UrlSyncOptions>(props.urlSync);
+        if (next && g && hasAddPlugins(g)) {
+          urlSync = new UrlSync(next);
+          plugins.push(urlSync);
+          g.addPlugins([urlSync]);
+        }
+      }
+
+      if (!spanBands) {
+        const nextSpanLate = spanOptions(props.spanBands);
+        if (nextSpanLate && g && hasAddPlugins(g)) {
+          spanBands = new SpanBands(nextSpanLate);
+          plugins.push(spanBands);
+          g.addPlugins([spanBands]);
+        }
       }
 
       if (brush && props.brushActive != null) {

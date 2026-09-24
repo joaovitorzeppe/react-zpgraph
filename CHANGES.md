@@ -1,5 +1,16 @@
 # Changes
 
+## 1.0.0
+
+Breaking release. See [MIGRATION-1.0.md](MIGRATION-1.0.md).
+
+- Depends on `zpgraph` ^2.0.0 instead of a peer dependency
+- Reexports the core package, including `react-zpgraph/extras`
+- React 18+ only
+- Shortcut props register opt-in plugins
+- Shallow compare for `options`
+- Measure label render receives the real result
+
 ## 0.6.1
 
 - Build: `tsdown` only (drop `tsc` emit + `fix-dts-extensions`)

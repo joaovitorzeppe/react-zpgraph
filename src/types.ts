@@ -1,5 +1,4 @@
 import type { CSSProperties, ReactNode } from "react";
-import type Zpgraph from "zpgraph";
 import type {
   ChartAnnotations,
   ChartClassNames,
@@ -9,6 +8,7 @@ import type {
   Point,
   ThresholdBand,
   ToolbarOptions,
+  Zpgraph,
   ZpgraphOptions,
 } from "zpgraph";
 import type { ExtrasProps } from "./extras-bridge";

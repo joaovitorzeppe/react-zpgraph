@@ -10,7 +10,14 @@ import {
   useLayoutEffect,
   useRef,
 } from "react";
-import ZpgraphCore, { themes } from "zpgraph";
+import {
+  ChartAnnotationsPlugin,
+  StatusOverlayPlugin,
+  ThresholdsPlugin,
+  ToolbarPlugin,
+  Zpgraph as ZpgraphCore,
+  themes,
+} from "zpgraph";
 import type {
   ChartAnnotations,
   ChartClassNames,
@@ -20,7 +27,6 @@ import type {
   ToolbarOptions,
   ZpgraphOptions,
 } from "zpgraph";
-import type ZpgraphInstance from "zpgraph";
 import {
   createExtrasController,
   type ExtrasController,
@@ -116,6 +122,7 @@ const mergeShortcutOptions = (
     onZoom?: ZpgraphProps["onZoom"] | undefined;
     onPointClick?: ZpgraphProps["onPointClick"] | undefined;
   },
+  zoomBridge?: ZpgraphOptions["zoomCallback"] | false,
 ): Partial<ZpgraphOptions> => {
   const merged: Partial<ZpgraphOptions> = { ...options };
   if (shortcuts.loading != null) {
@@ -130,18 +137,33 @@ const mergeShortcutOptions = (
   if (shortcuts.chartAnnotations != null) {
     merged.chartAnnotations = shortcuts.chartAnnotations;
   }
-  if (shortcuts.onZoom) {
-    const userZoom = options?.zoomCallback;
-    merged.zoomCallback = (min, max, ranges) => {
-      shortcuts.onZoom?.(min, max, ranges);
-      userZoom?.(min, max, ranges);
-    };
+  if (zoomBridge) {
+    merged.zoomCallback = zoomBridge;
+  } else if (zoomBridge === false) {
+    delete merged.zoomCallback;
+  }
+  const optIn: NonNullable<ZpgraphOptions["plugins"]> = [];
+  if (shortcuts.toolbar != null) {
+    optIn.push(ToolbarPlugin);
+  }
+  if (shortcuts.thresholds != null) {
+    optIn.push(ThresholdsPlugin);
+  }
+  if (shortcuts.chartAnnotations != null) {
+    optIn.push(ChartAnnotationsPlugin);
+  }
+  if (shortcuts.loading != null || merged.noData != null) {
+    optIn.push(StatusOverlayPlugin);
+  }
+  if (optIn.length) {
+    const prev = Array.isArray(merged.plugins) ? merged.plugins : [];
+    merged.plugins = [...prev, ...optIn];
   }
   if (shortcuts.onPointClick) {
     const userClick = options?.pointClickCallback;
-    merged.pointClickCallback = (event, point) => {
+    merged.pointClickCallback = (event, point, chart) => {
       shortcuts.onPointClick?.(event, point);
-      userClick?.(event, point);
+      userClick?.(event, point, chart);
     };
   }
   return merged;
@@ -212,7 +234,7 @@ const mergeOptions = (
 
   if (needsPortal) {
     const userDraw = options?.drawCallback;
-    merged.drawCallback = (g: ZpgraphInstance, isInitial: boolean) => {
+    merged.drawCallback = (g, isInitial) => {
       for (const { key, selector } of LABEL_SLOTS) {
         const slot = slots[key];
         if (!slot) {
@@ -330,6 +352,12 @@ export const Zpgraph = forwardRef<ZpgraphHandle, ZpgraphProps>(
       onZoom,
       onPointClick,
     });
+    const zoomBridgeRef = useRef<NonNullable<ZpgraphOptions["zoomCallback"]>>(
+      (min, max, ranges, chart) => {
+        shortcutsRef.current.onZoom?.(min, max, ranges);
+        optionsRef.current?.zoomCallback?.(min, max, ranges, chart);
+      },
+    );
     const extrasPropsRef = useRef(pickExtras(props));
     extrasPropsRef.current = pickExtras(props);
 
@@ -386,6 +414,7 @@ export const Zpgraph = forwardRef<ZpgraphHandle, ZpgraphProps>(
     const buildOptions = (
       opts: Partial<ZpgraphOptions> | undefined,
       slots: RenderSlots,
+      includeZoom: boolean,
     ) => {
       const hosts = {
         labels: labelHostsRef.current,
@@ -395,7 +424,11 @@ export const Zpgraph = forwardRef<ZpgraphHandle, ZpgraphProps>(
       return mergeOptions(
         themeRef.current,
         classNamesRef.current,
-        mergeShortcutOptions(opts, shortcutsRef.current),
+        mergeShortcutOptions(
+          opts,
+          shortcutsRef.current,
+          includeZoom ? zoomBridgeRef.current : false,
+        ),
         slots,
         hosts,
         {
@@ -448,7 +481,7 @@ export const Zpgraph = forwardRef<ZpgraphHandle, ZpgraphProps>(
       const extras = createExtrasController(extrasPropsRef.current);
       extrasRef.current = extras;
 
-      const base = buildOptions(optionsRef.current, currentSlots());
+      const base = buildOptions(optionsRef.current, currentSlots(), true);
       const withExtras = extras.mergeIntoOptions(base);
 
       const g = new ZpgraphCore(el, dataRef.current, withExtras);
@@ -502,7 +535,9 @@ export const Zpgraph = forwardRef<ZpgraphHandle, ZpgraphProps>(
 
     useLayoutEffect(() => {
       const themeChanged = themeRef.current !== theme;
-      const optionsChanged = optionsRef.current !== options;
+      const optionsChanged =
+        optionsRef.current !== options &&
+        !shallowOptions(optionsRef.current, options);
       const classNamesChanged = classNamesRef.current !== classNames;
       const shortcutsChanged =
         shortcutsRef.current.loading !== loading ||
@@ -565,7 +600,7 @@ export const Zpgraph = forwardRef<ZpgraphHandle, ZpgraphProps>(
         legendHostRef.current = createReactHost();
       }
 
-      const merged = buildOptions(options, currentSlots());
+      const merged = buildOptions(options, currentSlots(), false);
       if (merged !== undefined) {
         instanceRef.current?.updateOptions(merged);
       }
@@ -614,3 +649,25 @@ export const Zpgraph = forwardRef<ZpgraphHandle, ZpgraphProps>(
     );
   },
 );
+
+Zpgraph.displayName = "Zpgraph";
+
+const shallowOptions = (
+  a: Partial<ZpgraphOptions> | undefined,
+  b: Partial<ZpgraphOptions> | undefined,
+): boolean => {
+  if (a === b) {
+    return true;
+  }
+  if (!a || !b) {
+    return false;
+  }
+  const aKeys = Object.keys(a);
+  const bKeys = Object.keys(b);
+  if (aKeys.length !== bKeys.length) {
+    return false;
+  }
+  const bRecord: Record<string, unknown> = b;
+  const aRecord: Record<string, unknown> = a;
+  return aKeys.every((key) => aRecord[key] === bRecord[key]);
+};

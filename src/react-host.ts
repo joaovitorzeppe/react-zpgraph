@@ -5,7 +5,6 @@
  */
 
 import type { ReactNode } from "react";
-import * as ReactDOM from "react-dom";
 import { createRoot } from "react-dom/client";
 
 export type ReactHost = {
@@ -20,40 +19,13 @@ type RootApi = {
 };
 
 const attachRoot = (container: HTMLElement): RootApi => {
-  // React 18 / 19
-  if (typeof createRoot === "function") {
-    const root = createRoot(container);
-    return {
-      render: (node) => {
-        root.render(node);
-      },
-      unmount: () => {
-        root.unmount();
-      },
-    };
-  }
-
-  // React 17 (and React 18 deprecated path)
-  const legacyRender: unknown = Reflect.get(ReactDOM, "render");
-  const legacyUnmount: unknown = Reflect.get(
-    ReactDOM,
-    "unmountComponentAtNode",
-  );
-  if (
-    typeof legacyRender !== "function" ||
-    typeof legacyUnmount !== "function"
-  ) {
-    throw new Error(
-      "react-zpgraph: need React 18+ (react-dom/client) or React 17 ReactDOM.render",
-    );
-  }
-
+  const root = createRoot(container);
   return {
     render: (node) => {
-      Function.prototype.call.call(legacyRender, ReactDOM, node, container);
+      root.render(node);
     },
     unmount: () => {
-      Function.prototype.call.call(legacyUnmount, ReactDOM, container);
+      root.unmount();
     },
   };
 };

@@ -26,6 +26,18 @@ export type DynamicLabelRenders = {
     | undefined;
 };
 
+const isMeasureResult = (value: unknown): value is MeasureResult =>
+  typeof value === "object" &&
+  value !== null &&
+  "deltaX" in value &&
+  "deltaY" in value;
+
+const trimHosts = (hosts: ReactHost[], keep: number): void => {
+  while (hosts.length > keep) {
+    hosts.pop()?.dispose();
+  }
+};
+
 /** Portal React nodes into core DOM label hosts (`[data-zp-label]`). */
 export const paintDynamicLabels = (
   graphDiv: HTMLElement,
@@ -59,6 +71,7 @@ export const paintDynamicLabels = (
       }
       host.render(renderThreshold(band, i));
     });
+    trimHosts(hosts.threshold, labeled.length);
   }
 
   if (renders.renderSpanBandLabel) {
@@ -82,6 +95,7 @@ export const paintDynamicLabels = (
       }
       host.render(renderSpan(band, i));
     });
+    trimHosts(hosts.spanBand, labeled.length);
   }
 
   if (renders.renderMeasureLabel) {
@@ -94,9 +108,10 @@ export const paintDynamicLabels = (
       if (host.element.parentElement !== el) {
         el.replaceChildren(host.element);
       }
+      const raw = Reflect.get(el, "zpMeasureResult");
       host.render(
         renders.renderMeasureLabel({
-          result: null,
+          result: isMeasureResult(raw) ? raw : null,
           dx: el.dataset.zpDx ?? "",
           dy: el.dataset.zpDy ?? "",
         }),

@@ -4,7 +4,7 @@ React bindings for [zpgraph](https://www.npmjs.com/package/zpgraph) — fast,
 typed timeseries charts. Thin wrapper: one chart instance per mount, updates
 via `updateOptions`, auto-resize with `ResizeObserver`.
 
-Works with **React 19** (primary), **React 18**, and **React 17**.
+Works with **React 19** and **React 18**.
 
 ## Install
 
@@ -12,11 +12,11 @@ Works with **React 19** (primary), **React 18**, and **React 17**.
 npm install react-zpgraph
 ```
 
-ESM only. Types, `themes`, and `ZpgraphCore` come from `react-zpgraph`. Import `"zpgraph"` only for extras or
-plugins the wrapper does not expose.
+ESM only. `zpgraph` is a dependency. Types, themes, plugins and extras come from `react-zpgraph`. No CSS import.
 
 ```ts
 import { Zpgraph, ZpgraphCore, type ThresholdBand } from "react-zpgraph";
+import { synchronize } from "react-zpgraph/extras";
 ```
 
 ## Demos

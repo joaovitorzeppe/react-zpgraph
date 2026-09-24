@@ -52,7 +52,16 @@ vi.mock("zpgraph", () => {
     dark: { axisLineColor: "#c0c0c0", gridLineColor: "rgb(80,80,80)" },
   };
 
-  return { default: MockZpgraph, Zpgraph: MockZpgraph, themes: mockThemes };
+  class OptInPlugin {}
+  return {
+    default: MockZpgraph,
+    Zpgraph: MockZpgraph,
+    themes: mockThemes,
+    ToolbarPlugin: OptInPlugin,
+    ThresholdsPlugin: OptInPlugin,
+    ChartAnnotationsPlugin: OptInPlugin,
+    StatusOverlayPlugin: OptInPlugin,
+  };
 });
 
 const sampleData: [Date, number][] = [
@@ -198,9 +207,10 @@ describe("Zpgraph", () => {
     render(
       <Zpgraph data={sampleData} classNames={{ legend: "rounded-md p-3" }} />,
     );
-    expect(state.lastOpts).toEqual({
+    expect(state.lastOpts).toMatchObject({
       classNames: { legend: "rounded-md p-3" },
     });
+    expect(typeof state.lastOpts?.zoomCallback).toBe("function");
   });
 
   it("injects legendFormatter when renderLegend is set", () => {

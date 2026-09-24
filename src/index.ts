@@ -15,5 +15,5 @@ export type {
 export { createReactHost } from "./react-host";
 export { createExtrasController } from "./extras-bridge";
 
-export type * from "zpgraph";
-export { default as ZpgraphCore, themes } from "zpgraph";
+export * from "zpgraph";
+export { Zpgraph as ZpgraphCore } from "zpgraph";
